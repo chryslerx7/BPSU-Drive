@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BPSU Drive</string>
+    <string name="uni_name">Bataan Peninsula State University</string>
+    <string name="splash_tagline">A Campus Service Request and Payment Verification System</string>
+    <string name="splash_loading">Loading campus services…</string>
+
+    <string name="student_login_title">Student Login</string>
+    <string name="student_login_subtitle">Use your authorized BPSU school email.</string>
+    <string name="label_school_email">BPSU School Email</string>
+    <string name="hint_school_email">Your school email</string>
+    <string name="label_password">Password</string>
+    <string name="action_login">Login</string>
+    <string name="action_create_account">Create Account</string>
+    <string name="action_forgot">Forgot Password · demo placeholder</string>
+    <string name="note_login_recovery">Account recovery is not connected in this local demo. Contact your authorized office for assistance.</string>
+
+    <string name="register_title">Create student account</string>
+    <string name="register_subtitle">Use your authorized BPSU school email.</string>
+    <string name="label_full_name">Full Name</string>
+    <string name="hint_full_name">Juan Dela Cruz</string>
+    <string name="label_student_id">Student ID</string>
+    <string name="hint_student_id">2026-000123</string>
+    <string name="label_confirm_password">Confirm Password</string>
+    <string name="action_back_to_login">Back to Login</string>
+    <string name="note_register">Student self-registration only. Staff accounts are provided by an authorized administrator.</string>
+
+    <string name="staff_login_title">Staff Login</string>
+    <string name="staff_login_subtitle">Sign in with your authorized BPSU staff account.</string>
+    <string name="label_staff_email">Staff email / account</string>
+    <string name="hint_staff_email">Authorized staff account</string>
+    <string name="action_back">Back</string>
+    <string name="note_staff">Staff access is provided by an authorized administrator. There is no public staff registration.</string>
+
+    <string name="home_active_requests">Active Requests</string>
+    <string name="home_request_id">Request #000124 · Oct 7, 2026</string>
+    <string name="home_request_title">Certificate Request · ₱50.00</string>
+    <string name="home_chip_request">Request · Receipt Verification</string>
+    <string name="home_chip_receipt">Receipt · Receipt Submitted</string>
+    <string name="home_view_details">View Details →</string>
+    <string name="home_available_services">Available services</string>
+    <string name="home_new_request">+ New Request</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_requests">Requests</string>
+    <string name="nav_notifications">Notifications</string>
+    <string name="nav_profile">Profile</string>
+    <string name="falcon_greeting">Magandang araw, !</string>
+    <string name="falcon_typing">•••</string>
+    <string name="falcon_message">May irerequest ka bang dokumento ngayon?</string>
+
+    <string name="services_title">Services</string>
+    <string name="services_search_hint">Search services…</string>
+    <string name="services_subtitle">Choose a service to view requirements.</string>
+    <string name="service_cert_title">Certificate Request</string>
+    <string name="service_cert_desc">Request a certificate for your student records.</string>
+    <string name="service_cert_fee">₱50.00</string>
+    <string name="service_doc_title">Document Request</string>
+    <string name="service_doc_desc">Ask for an available student document.</string>
+    <string name="service_doc_fee">Fee subject to office confirmation</string>
+    <string name="service_id_title">ID Concern</string>
+    <string name="service_id_desc">Report a student ID concern or request assistance.</string>
+    <string name="service_id_fee">Fee, if any, subject to office confirmation</string>
+    <string name="service_inquiry_title">General Inquiry</string>
+    <string name="service_inquiry_desc">Send a question to the authorized campus office.</string>
+    <string name="service_inquiry_fee">Free · illustrative demo service</string>
+    <string name="service_view">View Service →</string>
+    <string name="services_footer">Fees and processing schedules not specified in this case study are illustrative or subject to office confirmation.</string>
+
+    <string name="service_details_title">Service Details</string>
+    <string name="service_detail_name">Certificate Request</string>
+    <string name="service_detail_desc">Request a certificate for your student records or supporting applications.</string>
+    <string name="service_detail_fee">Fee: ₱50.00</string>
+    <string name="service_detail_processing">Processing: Schedule subject to office confirmation.</string>
+    <string name="service_detail_reqs_title">Requirements</string>
+    <string name="service_detail_req1">✓ Valid student ID</string>
+    <string name="service_detail_req2">✓ Official receipt, submitted after cashier payment</string>
+    <string name="service_detail_how_title">How this works</string>
+    <string name="service_detail_how_body">Submit your request, pay at the designated cashier, then photograph your receipt. Staff must verify it before accepting a paid request.</string>
+    <string name="service_detail_cta">Request This Service</string>
+
+    <string name="create_request_title">Create Request</string>
+    <string name="create_selected_label">SELECTED SERVICE</string>
+    <string name="create_student_name">Student: Juan Dela Cruz</string>
+    <string name="create_student_id">Student ID: 2026-000123</string>
+    <string name="create_student_email">School email: 2026-000123@bpsu.edu.ph</string>
+    <string name="create_purpose_label">Purpose / description *</string>
+    <string name="create_purpose_sample">For scholarship application.</string>
+    <string name="create_additional_label">Additional information (optional)</string>
+    <string name="create_additional_sample">Scholarship supporting document</string>
+    <string name="create_pay_note">Pay physically at the designated BPSU cashier after submitting this request. No payment is collected in the app.</string>
+    <string name="create_submit">Submit Request</string>
+    <string name="create_required_note">* Required field · Check your information before submitting.</string>
+
+    <string name="create_validation_title">Create Request · Validation</string>
+    <string name="create_purpose_hint_empty">Tell us why you need this certificate</string>
+    <string name="create_purpose_error">Purpose is required. Please enter a description.</string>
+    <string name="create_retained_note">Your selected service and other information are retained.</string>
+
+    <string name="submitted_header">Request Submitted</string>
+    <string name="submitted_title">Request submitted</string>
+    <string name="submitted_message">Your request has been submitted successfully. Please proceed to the designated cashier if payment is required.</string>
+    <string name="submitted_req_id">Request #000124</string>
+    <string name="submitted_service">Service: Certificate Request</string>
+    <string name="submitted_date">Submitted: October 7, 2026</string>
+    <string name="submitted_req_status">Request: Pending / Waiting for Receipt</string>
+    <string name="submitted_receipt_status">Receipt: Unpaid</string>
+    <string name="submitted_fee">Fee: ₱50.00</string>
+    <string name="submitted_next_title">Next: cashier payment</string>
+    <string name="submitted_next_body">Pay the ₱50.00 fee physically, keep your official receipt, and submit a clear photo in BPSU Drive.</string>
+    <string name="submitted_view">View Request</string>
+
+    <string name="myrequests_title">My Requests</string>
+    <string name="myrequests_search_hint">Search requests…</string>
+    <string name="myrequests_tab_all">All</string>
+    <string name="myrequests_tab_pending">Pending</string>
+    <string name="myrequests_tab_processing">Processing</string>
+    <string name="myrequests_tab_completed">Completed</string>
+    <string name="myrequests_req1_meta">Request #000124 · Oct 7, 2026</string>
+    <string name="myrequests_req1_service">Certificate Request</string>
+    <string name="myrequests_req1_req">Request · Pending</string>
+    <string name="myrequests_req1_receipt">Receipt · Unpaid</string>
+    <string name="myrequests_req2_meta">Request #000119 · Oct 6, 2026</string>
+    <string name="myrequests_req2_service">Document Request</string>
+    <string name="myrequests_req2_req">Request · Processing</string>
+    <string name="myrequests_req2_receipt">Receipt · Verified</string>
+    <string name="myrequests_req3_meta">Request #000120 · Oct 5, 2026</string>
+    <string name="myrequests_req3_service">Certificate Request</string>
+    <string name="myrequests_req3_req">Request · Completed</string>
+    <string name="myrequests_req3_receipt">Receipt · Verified</string>
+
+    <string name="details_header">Request Details</string>
+    <string name="details_meta">Request #000124 · October 7, 2026</string>
+    <string name="details_stage">Receipt Verification</string>
+    <string name="details_wait_title">Waiting for receipt verification</string>
+    <string name="details_wait_body">Your receipt is under review. Staff will verify it before they can accept your request. No action is needed right now.</string>
+    <string name="details_step_submitted">✓ Request Submitted</string>
+    <string name="details_step_receipt">✓ Receipt Submitted</string>
+    <string name="details_step_current">● Receipt Verification · Current</string>
+    <string name="details_step_accepted">○ Request Accepted</string>
+    <string name="details_step_processing">○ Processing</string>
+    <string name="details_step_completed">○ Completed</string>
+    <string name="details_student">Student: Juan Dela Cruz · 2026-000123</string>
+    <string name="details_payment">Payment: ₱50.00 · Physical cashier payment</string>
+    <string name="details_receipt">Receipt: Receipt Submitted</string>
+    <string name="details_request">Request: Pending verification</string>
+    <string name="details_purpose">Purpose: For scholarship application.</string>
+    <string name="details_remarks">Remarks: Waiting for receipt verification.</string>
+    <string name="details_view_receipt">View Receipt</string>
+
+    <string name="payment_header">Payment Instructions</string>
+    <string name="payment_title">Payment Required</string>
+    <string name="payment_amount">₱50.00</string>
+    <string name="payment_context">Certificate Request · Request #000124</string>
+    <string name="payment_cashier_title">Physical cashier payment only</string>
+    <string name="payment_cashier_body">Please pay the required fee at the designated cashier before submitting your receipt.</string>
+    <string name="payment_photo_title">Before you take a photo</string>
+    <string name="payment_step1">1. Pay at the designated BPSU cashier.</string>
+    <string name="payment_step2">2. Keep the official receipt issued to you.</string>
+    <string name="payment_step3">3. Photograph the full receipt clearly.</string>
+    <string name="payment_step4">4. Submit the photo for staff verification.</string>
+    <string name="payment_reminder">Cashier location and schedule: confirm with the authorized office. BPSU Drive does not process online payments.</string>
+    <string name="payment_cta">Take Receipt Photo</string>
+
+    <string name="camera_title">Camera Receipt Capture</string>
+    <string name="camera_instruction">Place the full receipt inside the guide. Keep the amount and date readable.</string>
+    <string name="camera_hint">STATIC CAMERA WIREFRAME</string>
+    <string name="camera_capture_desc">Capture receipt photo</string>
+
+    <string name="preview_header">Receipt Preview</string>
+    <string name="preview_title">Check your receipt photo</string>
+    <string name="preview_reference">Request #000124 · Certificate Request</string>
+    <string name="preview_wireframe_banner">ILLUSTRATIVE WIREFRAME — NOT A VALID RECEIPT</string>
+    <string name="preview_sample_title">Cashier receipt · sample</string>
+    <string name="preview_sample_student">Student: Juan Dela Cruz</string>
+    <string name="preview_sample_service">Service: Certificate Request</string>
+    <string name="preview_sample_amount">Amount: ₱50.00</string>
+    <string name="preview_sample_date">Date: October 7, 2026</string>
+    <string name="preview_sample_number">Sample receipt number: DEMO-0124</string>
+    <string name="preview_sample_note">Reference only. Not official payment evidence.</string>
+    <string name="preview_instruction">Make sure the full receipt is visible and the student, amount, and date are legible. This sample is a wireframe placeholder, not official evidence.</string>
+    <string name="preview_submit">Submit Receipt</string>
+    <string name="preview_retake">Retake</string>
+
+    <string name="receipt_sent_header">Receipt Submitted</string>
+    <string name="receipt_sent_title">Receipt submitted</string>
+    <string name="receipt_sent_message">Your receipt photo has been sent for review.</string>
+    <string name="receipt_sent_request">Request: #000124 · Pending verification</string>
+    <string name="receipt_sent_receipt">Receipt: Receipt Submitted</string>
+    <string name="receipt_sent_amount">Amount: ₱50.00</string>
+    <string name="receipt_sent_next_title">Next: authorized staff review</string>
+    <string name="receipt_sent_next_body">Wait for verification. If your receipt needs correction, you will see a notification with the reason. Verification is separate from request acceptance.</string>
+    <string name="receipt_sent_view">View Request</string>
+
+    <string name="rejected_header">Receipt Rejected</string>
+    <string name="rejected_title">Receipt Rejected — Action Required</string>
+    <string name="rejected_chip">Rejected</string>
+    <string name="rejected_reference">Document Request · Request #000123</string>
+    <string name="rejected_remarks_title">Staff remarks</string>
+    <string name="rejected_remarks_body">The receipt image is unclear. Please submit a clearer photo.</string>
+    <string name="rejected_request">Request: Pending / Waiting for Receipt</string>
+    <string name="rejected_receipt">Receipt: Rejected</string>
+    <string name="rejected_reviewed">Reviewed: Oct 7, 2026 · 9:05 AM</string>
+    <string name="rejected_prev_title">Previous receipt</string>
+    <string name="rejected_prev_service">Service: Document Request</string>
+    <string name="rejected_prev_amount">Amount: Illustrative sample</string>
+    <string name="rejected_note">The request is not accepted. Submit a new photo to restart receipt verification.</string>
+    <string name="rejected_submit_new">Submit New Receipt</string>
+
+    <string name="verified_header">Receipt Verified</string>
+    <string name="verified_request">Request: Pending</string>
+    <string name="verified_receipt">Receipt: Verified</string>
+    <string name="verified_fee">Service fee: ₱50.00</string>
+    <string name="verified_notice_title">Receipt Verified</string>
+    <string name="verified_notice_body">Verified by Authorized Staff. Your payment receipt is confirmed. Wait for staff to accept your request; it has not been accepted yet.</string>
+    <string name="verified_progress_title">Request progress</string>
+    <string name="verified_step_verification">✓ Receipt Verification</string>
+    <string name="verified_step_accepted">● Request Accepted · Current</string>
+    <string name="verified_purpose">Purpose: For scholarship application.</string>
+    <string name="verified_remarks">Remarks: Receipt verified by authorized staff. Awaiting request acceptance.</string>
+
+    <string name="accepted_header">Request Accepted</string>
+    <string name="accepted_request">Request: Accepted</string>
+    <string name="accepted_notice_title">Request Accepted</string>
+    <string name="accepted_notice_body">Your request has been accepted. Next, the authorized office will begin processing it. You do not need to submit another receipt.</string>
+    <string name="accepted_remarks">Remarks: Accepted by authorized staff. Office processing is next.</string>
+
+    <string name="processing_header">Request Processing</string>
+    <string name="processing_request">Request: Processing</string>
+    <string name="processing_notice_title">Request Processing</string>
+    <string name="processing_notice_body">The office is processing your request. Wait for a completion update in Notifications. There is no payment action needed.</string>
+    <string name="processing_step_accepted">✓ Request Accepted</string>
+    <string name="processing_step_current">● Processing · Current</string>
+    <string name="processing_remarks">Remarks: Your request is being prepared by the authorized office.</string>
+
+    <string name="completed_header">Request Completed</string>
+    <string name="completed_request">Request: Completed</string>
+    <string name="completed_notice_title">Request Completed</string>
+    <string name="completed_notice_body">Your request is complete. Check the final remarks and confirm collection arrangements with the authorized office, if collection is required.</string>
+    <string name="completed_step_processing">✓ Processing</string>
+    <string name="completed_step_completed">✓ Completed</string>
+    <string name="completed_remarks">Remarks: Certificate request completed. Follow the office\'s collection instructions.</string>
+    <string name="completed_action">Back to My Requests</string>
+
+    <string name="notif_title">Notifications</string>
+    <string name="notif_today">Today · October 7, 2026</string>
+    <string name="notif1_title">Receipt Verified</string>
+    <string name="notif1_msg">#000124 · Your receipt is verified. Wait for staff acceptance.</string>
+    <string name="notif1_time">10:30 AM · Today</string>
+    <string name="notif2_title">Receipt Rejected</string>
+    <string name="notif2_msg">#000123 · Image unclear. Submit a clearer photo.</string>
+    <string name="notif2_time">9:05 AM · Today</string>
+    <string name="notif3_title">Request Accepted</string>
+    <string name="notif3_msg">#000124 · Next: office processing.</string>
+    <string name="notif3_time">10:40 AM · Today</string>
+    <string name="notif4_title">Request Completed</string>
+    <string name="notif4_msg">#000120 · Check collection instructions with the office.</string>
+    <string name="notif4_time">Yesterday · 2:30 PM</string>
+    <string name="notif_footer">Demo notifications represent different lifecycle states. Local notification behavior only; cross-device delivery is not connected.</string>
+
+    <string name="profile_title">Student Profile</string>
+    <string name="profile_name">Juan Dela Cruz</string>
+    <string name="profile_badge">Student account</string>
+    <string name="profile_section">Account information</string>
+    <string name="profile_edit">Edit Profile</string>
+    <string name="profile_password">Change Password</string>
+    <string name="profile_notif">Notification Settings</string>
+    <string name="profile_logout">Logout</string>
+    <string name="profile_footer">School email shown is an illustrative account. Authorization must be confirmed for the campus deployment.</string>
+
+    <string name="edit_photo_change">Change Photo</string>
+    <string name="edit_photo_remove">Remove Photo</string>
+    <string name="edit_readonly">Read-only</string>
+    <string name="edit_locked_note">Student ID and school email cannot be changed here.</string>
+    <string name="edit_save">Save Changes</string>
+    <string name="edit_cancel">Cancel</string>
+    <string name="edit_email_value">2026-000123@bpsu.edu.ph</string>
+
+    <string name="pw_required_note">All password fields are required.</string>
+    <string name="pw_current">Current Password</string>
+    <string name="pw_new">New Password</string>
+    <string name="pw_confirm">Confirm New Password</string>
+    <string name="pw_match_note">New Password and Confirm New Password must match.</string>
+    <string name="pw_update">Update Password</string>
+    <string name="pw_cancel">Cancel</string>
+</resources>

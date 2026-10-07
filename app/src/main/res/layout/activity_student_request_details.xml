@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ONE reusable Request Details screen (default state: Receipt Verification).
+     The Receipt Verified state (Student 16) is supported by this same layout:
+     hide tvStageChip, swap noticeBox background to bg_info_box_green with the
+     verified_* strings, show tvProgressTitle + tvStepVerification, restyle
+     tvStepCurrent as a completed step, promote tvStepAccepted to current,
+     hide tvFeeAmount, and set the verified_* texts on the detail rows.
+     The Request Accepted state (Student 17) reuses the same views:
+     tvHeaderTitle -> accepted_header, hide tvStageChip, noticeBox stays pink
+     with accepted_notice_title/body, show tvProgressTitle + tvStepVerification
+     as green checks, tvStepCurrent becomes the completed verification step,
+     tvStepAccepted takes verified_step_accepted as maroon-bold current,
+     hide tvFeeAmount, and detail rows take accepted_request (Request),
+     verified_receipt (Receipt), verified_fee, details_student,
+     verified_purpose, and accepted_remarks.
+     The Request Processing state (Student 18) reuses the same views:
+     tvHeaderTitle -> processing_header, hide tvStageChip, noticeBox stays pink
+     with processing_notice_title/body, show tvProgressTitle + tvStepVerification
+     as green checks, tvStepSubmitted/tvStepReceipt stay green checks,
+     tvStepCurrent is hidden (verification is complete), tvStepAccepted takes
+     processing_step_accepted as a green check, tvStepProcessing takes
+     processing_step_current as maroon-bold current, tvStepCompleted stays
+     inactive,      hide tvFeeAmount, and detail rows take processing_request,
+     verified_receipt, verified_fee, details_student, verified_purpose,
+     and processing_remarks.
+     The Request Completed state (Student 19) reuses the same views:
+     tvHeaderTitle -> completed_header, hide tvStageChip, noticeBox takes
+     bg_info_box_green with completed_notice_title/body, show tvProgressTitle
+     + tvStepVerification as green checks, tvStepSubmitted/tvStepReceipt stay
+     green checks, hide tvStepCurrent, tvStepAccepted takes
+     processing_step_accepted as a green check, tvStepProcessing takes
+     completed_step_processing as a green check, tvStepCompleted takes
+     completed_step_completed as a green check (all steps complete, no
+     maroon current row), hide tvFeeAmount, detail rows take
+     completed_request, verified_receipt, verified_fee, details_student,
+     verified_purpose, and completed_remarks, and btnPrimaryAction takes
+     completed_action (Back to My Requests).
+     No status logic lives here; future Java + SQLite will drive the states. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="16dp">
+
+        <ImageView
+            android:id="@+id/btn_back"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:contentDescription="@string/action_back"
+            android:padding="6dp"
+            android:rotation="180"
+            android:src="@drawable/ic_chevron_right" />
+
+        <TextView
+            android:id="@+id/tvHeaderTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/details_header"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tvRequestTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/service_detail_name"
+                android:textColor="@color/text_primary"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvRequestReference"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/details_meta"
+                android:textAppearance="@style/TextAppearance.BPSU.Subtitle"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvStageChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_chip_yellow"
+                android:paddingStart="10dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="6dp"
+                android:text="@string/details_stage"
+                android:textAppearance="@style/TextAppearance.BPSU.Chip"
+                android:textColor="@color/chip_yellow_text" />
+
+            <LinearLayout
+                android:id="@+id/noticeBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_info_box_yellow"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/tvNoticeTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/details_wait_title"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvNoticeBody"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/details_wait_body"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="1dp"
+                app:strokeColor="@color/stroke_grey"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:id="@+id/progressContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tvProgressTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/verified_progress_title"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvStepSubmitted"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/details_step_submitted"
+                        android:textColor="@color/chip_green_text"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tvStepReceipt"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/details_step_receipt"
+                        android:textColor="@color/chip_green_text"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tvStepVerification"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/verified_step_verification"
+                        android:textColor="@color/chip_green_text"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvStepCurrent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/details_step_current"
+                        android:textColor="@color/bpsu_maroon"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvStepAccepted"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/details_step_accepted"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tvStepProcessing"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/details_step_processing"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tvStepCompleted"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/details_step_completed"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="1dp"
+                app:strokeColor="@color/stroke_grey"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tvStudentInfo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/details_student"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tvFeeAmount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/details_payment"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tvReceiptStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/details_receipt"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tvRequestStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/details_request"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tvRequestDescription"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/details_purpose"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tvReceiptInfo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/details_remarks"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPrimaryAction"
+                style="@style/Widget.BPSU.Button.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/auth_button_height"
+                android:layout_marginTop="16dp"
+                android:text="@string/details_view_receipt" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

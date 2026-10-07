@@ -1,0 +1,29 @@
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="bpsu_maroon">#7A1F2B</color>
+    <color name="bpsu_maroon_dark">#5C1620</color>
+    <color name="bpsu_maroon_light">#F9E8EB</color>
+    <color name="text_primary">#FF111111</color>
+    <color name="text_secondary">#FF6B7280</color>
+    <color name="stroke_grey">#FFE5E7EB</color>
+    <color name="info_box_bg">#FFF9E8EC</color>
+    <color name="scrim_top">#D93A0A14</color>
+    <color name="scrim_bottom">#80000000</color>
+    <color name="home_bg">#FFF7F7F8</color>
+    <color name="active_banner_bg">#FFF9E8EC</color>
+    <color name="chip_grey_bg">#FFF1F2F4</color>
+    <color name="chip_grey_text">#FF6B7280</color>
+    <color name="chip_yellow_bg">#FFFEF3C7</color>
+    <color name="chip_yellow_text">#FF92400E</color>
+    <color name="nav_selected_bg">#FFF9E8EC</color>
+    <color name="falcon_accent_green">#FF2E7D32</color>
+    <color name="error_red">#FFB3261E</color>
+    <color name="chip_green_bg">#FFE6F4EA</color>
+    <color name="chip_green_text">#FF1B5E20</color>
+    <color name="chip_pink_bg">#FFF9E8EC</color>
+    <color name="chip_pink_text">#FF7A1F2B</color>
+    <color name="camera_preview_bg">#FF232329</color>
+    <color name="camera_guide">#FFB0B0B0</color>
+    <color name="chip_red_bg">#FFFDECEA</color>
+</resources>

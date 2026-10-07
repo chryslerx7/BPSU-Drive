@@ -1,0 +1,37 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Figma/UIUX design reference exports (not app resources)
+BSPU Drive UIUX/
+
+# Build outputs
+app/build/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Signing keys — never publish
+*.jks
+*.keystore
+
+# Android Studio / IDE
+.idea/
+*.hprof
+captures/
+
+# OS
+Thumbs.db

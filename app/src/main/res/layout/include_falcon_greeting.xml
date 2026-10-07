@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ONE Falcon + ONE speech dialog. Three visual states are driven by visibility:
+     State 1 Greeting: tv_greeting visible
+     State 2 Typing: tv_greeting + tv_typing visible
+     State 3 Message: tv_greeting + tv_falcon_message visible -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/falcon_greeting_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="top"
+    android:orientation="horizontal"
+    android:paddingStart="16dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="16dp">
+
+    <ImageView
+        android:id="@+id/falcon_image"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:contentDescription="Falcon mascot"
+        android:scaleType="fitCenter"
+        android:src="@drawable/falcon" />
+
+    <LinearLayout
+        android:id="@+id/speech_dialog"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_speech_bubble"
+        android:elevation="2dp"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tv_greeting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/falcon_greeting"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_typing"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/falcon_typing"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tv_falcon_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/falcon_message"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            android:visibility="gone" />
+
+        <View
+            android:layout_width="28dp"
+            android:layout_height="3dp"
+            android:layout_marginTop="6dp"
+            android:background="@color/falcon_accent_green" />
+    </LinearLayout>
+</LinearLayout>
