@@ -4,9 +4,7 @@ plugins {
 
 android {
     namespace 'com.example.bpsudrive'
-    compileSdk {
-        version = release(37)
-    }
+    compileSdk 37
 
     defaultConfig {
         applicationId "com.example.bpsudrive"
@@ -18,13 +16,17 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    buildFeatures {
+        viewBinding true
+    }
+
     buildTypes {
         release {
-            optimization {
-                enable false
-            }
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
