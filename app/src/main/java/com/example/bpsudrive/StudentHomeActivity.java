@@ -1,69 +1,110 @@
 package com.example.bpsudrive;
 
+import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Typeface;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-// UI-only Falcon greeting animation. No auth, no DB, no business logic.
-// Greeting TextView (R.id.tv_greeting) is exposed for later SessionManager wiring:
-//   TextView greeting = findViewById(R.id.tv_greeting);
-//   greeting.setText("Magandang araw, " + studentName + "!");
+import com.example.bpsudrive.databinding.ActivityStudentHomeBinding;
+
+// Student Home screen matching New Home UI reference, with ViewBinding and bottom navigation.
 public class StudentHomeActivity extends AppCompatActivity {
 
-    private final Handler handler = new Handler(Looper.getMainLooper());
-    private View speechDialog;
-    private View typing;
-    private View message;
+    private ActivityStudentHomeBinding binding;
+    private SessionManager sessionManager;
+    private DatabaseHelper databaseHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_student_home);
+        binding = ActivityStudentHomeBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        View falcon = findViewById(R.id.falcon_image);
-        speechDialog = findViewById(R.id.speech_dialog);
-        typing = findViewById(R.id.tv_typing);
-        message = findViewById(R.id.tv_falcon_message);
+        sessionManager = new SessionManager(this);
+        databaseHelper = new DatabaseHelper(this);
 
-        // Initial: hide dialog pieces, show greeting only at the end of intro.
-        speechDialog.setVisibility(View.INVISIBLE);
-        typing.setVisibility(View.GONE);
-        message.setVisibility(View.GONE);
+        // Mark Home tab as selected in bottom navigation
+        markSelected(binding.bottomNav.navHome);
+        markUnselected(binding.bottomNav.navRequests);
+        markUnselected(binding.bottomNav.navNotifications);
+        markUnselected(binding.bottomNav.navProfile);
 
-        // Falcon appears / settles.
-        Animation falconAnim = AnimationUtils.loadAnimation(this, R.anim.falcon_settle);
-        falcon.startAnimation(falconAnim);
+        // Load student greeting name
+        loadUserGreeting();
 
-        // Speech dialog fades/slides in.
-        handler.postDelayed(() -> {
-            speechDialog.setVisibility(View.VISIBLE);
-            speechDialog.startAnimation(AnimationUtils.loadAnimation(this, R.anim.speech_in));
-        }, 400);
+        // Wire bottom navigation clicks
+        binding.bottomNav.navHome.setOnClickListener(v -> {
+            // Already on home
+        });
+        binding.bottomNav.navRequests.setOnClickListener(v -> {
+            startActivity(new Intent(this, StudentMyRequestsActivity.class));
+            finish();
+        });
+        binding.bottomNav.navNotifications.setOnClickListener(v -> {
+            startActivity(new Intent(this, StudentNotificationsActivity.class));
+            finish();
+        });
+        binding.bottomNav.navProfile.setOnClickListener(v -> {
+            startActivity(new Intent(this, StudentProfileActivity.class));
+            finish();
+        });
 
-        // State 1 Greeting remains ~1.8s, then State 2 Typing ~1.0s.
-        handler.postDelayed(() -> {
-            typing.setVisibility(View.VISIBLE);
-            Animation blink = AnimationUtils.loadAnimation(this, R.anim.typing_blink);
-            typing.startAnimation(blink);
-        }, 2200);
+        // Wire top notification bell
+        binding.includeHomeHeader.btnNotifications.setOnClickListener(v ->
+                startActivity(new Intent(this, StudentNotificationsActivity.class)));
 
-        // State 3 Message: typing -> final message, remain visible.
-        handler.postDelayed(() -> {
-            typing.clearAnimation();
-            typing.setVisibility(View.GONE);
-            message.setVisibility(View.VISIBLE);
-            message.startAnimation(AnimationUtils.loadAnimation(this, R.anim.speech_in));
-        }, 3200);
+        // Wire request details and new request buttons
+        binding.btnViewDetails.setOnClickListener(v ->
+                startActivity(new Intent(this, StudentRequestDetailsActivity.class)));
+        binding.btnNewRequest.setOnClickListener(v ->
+                startActivity(new Intent(this, StudentCreateRequestActivity.class)));
     }
 
-    @Override
-    protected void onDestroy() {
-        handler.removeCallbacksAndMessages(null);
-        super.onDestroy();
+    private void loadUserGreeting() {
+        int userId = sessionManager.getUserId();
+        if (userId == -1) {
+            binding.tvGreeting.setText("Good morning, Student");
+            return;
+        }
+
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+        try (Cursor cursor = db.query(DatabaseHelper.TABLE_USERS, null,
+                DatabaseHelper.COLUMN_ID + " = ?",
+                new String[]{String.valueOf(userId)}, null, null, null)) {
+
+            if (cursor != null && cursor.moveToFirst()) {
+                int nameIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_USER_NAME);
+                if (nameIdx != -1) {
+                    String fullName = cursor.getString(nameIdx);
+                    // Extract first name for greeting
+                    String firstName = fullName.split(" ")[0];
+                    binding.tvGreeting.setText("Good morning, " + firstName);
+                } else {
+                    binding.tvGreeting.setText("Good morning, Student");
+                }
+            } else {
+                binding.tvGreeting.setText("Good morning, Student");
+            }
+        } catch (Exception e) {
+            binding.tvGreeting.setText("Good morning, Student");
+        } finally {
+            db.close();
+        }
+    }
+
+    private void markSelected(TextView tab) {
+        tab.setBackgroundResource(R.drawable.bg_nav_selected);
+        tab.setTextColor(getColor(R.color.bpsu_maroon));
+        tab.setTypeface(null, Typeface.BOLD);
+    }
+
+    private void markUnselected(TextView tab) {
+        tab.setBackgroundResource(0);
+        tab.setTextColor(getColor(R.color.text_secondary));
+        tab.setTypeface(null, Typeface.NORMAL);
     }
 }

@@ -1,30 +1,95 @@
 package com.example.bpsudrive;
 
+import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-// UI-only Student Profile screen with static sample data.
-// Reuses include_student_bottom_nav.xml; Profile is marked selected
-// with UI-only styling (no navigation logic).
-// Edit Profile / Change Password / Notification Settings / Logout
-// are visual-only for now.
-// No SQLite, no SessionManager, no auth logic.
-// Exposed IDs for later wiring:
-// profileImage, tvProfileName, tvProfileStudent,
-// tvProfileStudentId, tvProfileEmail, profileContent,
-// btnEditProfile, btnChangePassword, btnNotifSettings, btnLogout,
-// nav_home, nav_requests, nav_notifications, nav_profile
+import com.example.bpsudrive.databinding.ActivityStudentProfileBinding;
+
+// Student profile screen using ViewBinding, loading user data from SQLite, and handling logout.
 public class StudentProfileActivity extends AppCompatActivity {
+
+    private ActivityStudentProfileBinding binding;
+    private SessionManager sessionManager;
+    private DatabaseHelper databaseHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_student_profile);
-        markSelected(findViewById(R.id.nav_profile));
-        markUnselected(findViewById(R.id.nav_home));
+        binding = ActivityStudentProfileBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        sessionManager = new SessionManager(this);
+        databaseHelper = new DatabaseHelper(this);
+
+        markSelected(binding.bottomNav.navProfile);
+        markUnselected(binding.bottomNav.navHome);
+
+        loadUserProfile();
+
+        // Wire bottom navigation clicks
+        binding.bottomNav.navHome.setOnClickListener(v -> {
+            startActivity(new Intent(this, StudentHomeActivity.class));
+            finish();
+        });
+        binding.bottomNav.navRequests.setOnClickListener(v -> {
+            startActivity(new Intent(this, StudentMyRequestsActivity.class));
+            finish();
+        });
+        binding.bottomNav.navNotifications.setOnClickListener(v -> {
+            startActivity(new Intent(this, StudentNotificationsActivity.class));
+            finish();
+        });
+
+        // Handle logout action
+        binding.btnLogout.setOnClickListener(v -> handleLogout());
+    }
+
+    private void loadUserProfile() {
+        int userId = sessionManager.getUserId();
+        if (userId == -1) {
+            return;
+        }
+
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+        try (Cursor cursor = db.query(DatabaseHelper.TABLE_USERS, null,
+                DatabaseHelper.COLUMN_ID + " = ?",
+                new String[]{String.valueOf(userId)}, null, null, null)) {
+
+            if (cursor != null && cursor.moveToFirst()) {
+                int nameIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_USER_NAME);
+                int studentIdIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_USER_STUDENT_ID);
+                int emailIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_USER_EMAIL);
+
+                if (nameIdx != -1 && studentIdIdx != -1 && emailIdx != -1) {
+                    String name = cursor.getString(nameIdx);
+                    String studentId = cursor.getString(studentIdIdx);
+                    String email = cursor.getString(emailIdx);
+
+                    binding.tvProfileName.setText(name);
+                    binding.tvProfileStudent.setText(name);
+                    binding.tvProfileStudentId.setText(studentId);
+                    binding.tvProfileEmail.setText(email);
+                }
+            }
+        } catch (Exception e) {
+            // Handle error silently
+        } finally {
+            db.close();
+        }
+    }
+
+    private void handleLogout() {
+        sessionManager.logoutUser();
+        Intent intent = new Intent(this, StudentLoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     private void markSelected(TextView tab) {

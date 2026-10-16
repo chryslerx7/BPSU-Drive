@@ -1,5 +1,6 @@
 package com.example.bpsudrive;
 
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
@@ -10,14 +11,6 @@ import androidx.appcompat.app.AppCompatActivity;
 // ONE reusable My Requests screen with four UI-only filter states:
 // ALL / PENDING / PROCESSING / COMPLETED.
 // Static sample cards only. No SQLite, no retrieval, no business logic.
-// Tapping a filter only toggles card visibility + selected-tab styling
-// so the four states can be visually tested.
-// Exposed IDs for later SQLite wiring:
-// tvMyRequestsTitle, etSearchRequests,
-// tabAll, tabPending, tabProcessing, tabCompleted,
-// requestCard1/2/3, tvRequestReference1/2/3, tvRequestDate1/2/3,
-// tvRequestService1/2/3, tvRequestStatus1/2/3, tvPaymentStatus1/2/3,
-// btnViewDetails1/2/3, nav_home, nav_requests, nav_notifications, nav_profile
 public class StudentMyRequestsActivity extends AppCompatActivity {
 
     private TextView tabAll;
@@ -47,6 +40,20 @@ public class StudentMyRequestsActivity extends AppCompatActivity {
         tabCompleted.setOnClickListener(v -> selectFilter(Filter.COMPLETED));
 
         selectFilter(Filter.ALL);
+
+        // Wire bottom navigation
+        findViewById(R.id.nav_home).setOnClickListener(v -> {
+            startActivity(new Intent(this, StudentHomeActivity.class));
+            finish();
+        });
+        findViewById(R.id.nav_notifications).setOnClickListener(v -> {
+            startActivity(new Intent(this, StudentNotificationsActivity.class));
+            finish();
+        });
+        findViewById(R.id.nav_profile).setOnClickListener(v -> {
+            startActivity(new Intent(this, StudentProfileActivity.class));
+            finish();
+        });
     }
 
     private enum Filter { ALL, PENDING, PROCESSING, COMPLETED }

@@ -1,20 +1,13 @@
 package com.example.bpsudrive;
 
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-// UI-only Notifications screen with static sample items.
-// Reuses include_student_bottom_nav.xml; Notifications is marked selected
-// with UI-only styling (no navigation logic).
-// No SQLite, no FCM, no persistence, no networking.
-// Exposed IDs for later wiring:
-// tvNotificationsTitle, notificationList,
-// notificationItem1-4, tvNotificationTitle1-4,
-// tvNotificationMessage1-4, tvNotificationTime1-4,
-// nav_home, nav_requests, nav_notifications, nav_profile
+// Notifications screen with bottom navigation wired up.
 public class StudentNotificationsActivity extends AppCompatActivity {
 
     @Override
@@ -23,6 +16,20 @@ public class StudentNotificationsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_student_notifications);
         markSelected(findViewById(R.id.nav_notifications));
         markUnselected(findViewById(R.id.nav_home));
+
+        // Wire bottom navigation
+        findViewById(R.id.nav_home).setOnClickListener(v -> {
+            startActivity(new Intent(this, StudentHomeActivity.class));
+            finish();
+        });
+        findViewById(R.id.nav_requests).setOnClickListener(v -> {
+            startActivity(new Intent(this, StudentMyRequestsActivity.class));
+            finish();
+        });
+        findViewById(R.id.nav_profile).setOnClickListener(v -> {
+            startActivity(new Intent(this, StudentProfileActivity.class));
+            finish();
+        });
     }
 
     private void markSelected(TextView tab) {
