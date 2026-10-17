@@ -1,6 +1,7 @@
 package com.example.bpsudrive;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -10,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bpsudrive.databinding.ActivityStudentRegisterBinding;
 
-// Student registration activity with SQLite persistence, duplicate checks, and PBKDF2 hashing.
+// Student registration activity with SQLite persistence, duplicate checks, PBKDF2 hashing, and automatic login.
 public class StudentRegisterActivity extends AppCompatActivity {
 
     private ActivityStudentRegisterBinding binding;
@@ -94,7 +95,14 @@ public class StudentRegisterActivity extends AppCompatActivity {
         }
 
         if (result != -1) {
-            Toast.makeText(this, "Account created successfully! Please login.", Toast.LENGTH_LONG).show();
+            // Automatically log in the newly registered student and navigate to Student Home
+            SessionManager sessionManager = new SessionManager(this);
+            sessionManager.createLoginSession((int) result, studentId);
+
+            Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, StudentHomeActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
             finish();
         } else {
             Toast.makeText(this, "Registration failed. Please try again.", Toast.LENGTH_SHORT).show();

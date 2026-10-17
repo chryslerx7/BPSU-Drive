@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 // Lightweight session manager using SharedPreferences for managing local student login state.
-// Kept separate from DatabaseHelper and not yet wired into login activities.
 public class SessionManager {
 
     private static final String PREF_NAME = "BpsuDrivePrefs";
@@ -20,12 +19,12 @@ public class SessionManager {
         editor = prefs.edit();
     }
 
-    // Save user session upon successful login
+    // Save user session upon successful login synchronously using commit() to prevent race conditions
     public void createLoginSession(int userId, String studentId) {
         editor.putInt(KEY_USER_ID, userId);
         editor.putString(KEY_STUDENT_ID, studentId);
         editor.putBoolean(KEY_IS_LOGGED_IN, true);
-        editor.apply();
+        editor.commit();
     }
 
     // Check if user is logged in
@@ -43,9 +42,9 @@ public class SessionManager {
         return prefs.getString(KEY_STUDENT_ID, null);
     }
 
-    // Clear session on logout
+    // Clear session on logout synchronously
     public void logoutUser() {
         editor.clear();
-        editor.apply();
+        editor.commit();
     }
 }
