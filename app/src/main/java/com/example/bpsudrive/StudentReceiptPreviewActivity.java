@@ -2,15 +2,21 @@ package com.example.bpsudrive;
 
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bpsudrive.databinding.ActivityStudentReceiptPreviewBinding;
 
-// Receipt preview activity using ViewBinding, inserting receipt record and notification into SQLite upon submission.
+import java.io.File;
+
+// Receipt preview activity using ViewBinding, displaying captured image and inserting receipt record into SQLite.
 public class StudentReceiptPreviewActivity extends AppCompatActivity {
 
     private ActivityStudentReceiptPreviewBinding binding;
@@ -43,6 +49,18 @@ public class StudentReceiptPreviewActivity extends AppCompatActivity {
         }
         binding.tvReceiptAmount.setText("Amount: ₱" + String.format("%.2f", serviceFee));
 
+        // Load and display actual captured or selected receipt image if available
+        if (imagePath != null) {
+            File imgFile = new File(imagePath);
+            if (imgFile.exists()) {
+                Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                if (bitmap != null) {
+                    binding.ivReceiptPhoto.setImageBitmap(bitmap);
+                    binding.ivReceiptPhoto.setVisibility(View.VISIBLE);
+                }
+            }
+        }
+
         binding.btnSubmitReceipt.setOnClickListener(v -> {
             if (requestId == -1) {
                 Toast.makeText(this, "Invalid request", Toast.LENGTH_SHORT).show();
@@ -55,6 +73,69 @@ public class StudentReceiptPreviewActivity extends AppCompatActivity {
                 return;
             }
 
+            // Step 1: Verify request exists, belongs to student, and is not Cancelled
+            SQLiteDatabase readDb = databaseHelper.getReadableDatabase();
+            String requestQuery = "SELECT " + DatabaseHelper.COLUMN_REQUEST_STATUS +
+                    " FROM " + DatabaseHelper.TABLE_REQUESTS +
+                    " WHERE " + DatabaseHelper.COLUMN_ID + " = ? AND " + DatabaseHelper.COLUMN_REQUEST_USER_ID + " = ?";
+
+            try (Cursor cursor = readDb.rawQuery(requestQuery, new String[]{String.valueOf(requestId), String.valueOf(userId)})) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int statusIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_REQUEST_STATUS);
+                    if (statusIdx != -1) {
+                        String requestStatus = cursor.getString(statusIdx);
+                        if ("Cancelled".equalsIgnoreCase(requestStatus)) {
+                            Toast.makeText(this, "Cannot submit receipts for a cancelled request.", Toast.LENGTH_LONG).show();
+                            finish();
+                            return;
+                        }
+                    }
+                } else {
+                    Toast.makeText(this, "Request access denied or not found", Toast.LENGTH_SHORT).show();
+                    finish();
+                    return;
+                }
+            } catch (Exception e) {
+                Toast.makeText(this, "Error validating request eligibility", Toast.LENGTH_SHORT).show();
+                return;
+            } finally {
+                readDb.close();
+            }
+
+            // Step 2: Check if an active (Pending Verification or Verified) receipt already exists
+            boolean hasActiveReceipt = false;
+            SQLiteDatabase checkDb = databaseHelper.getReadableDatabase();
+            try (Cursor cursor = checkDb.query(DatabaseHelper.TABLE_RECEIPTS,
+                    new String[]{DatabaseHelper.COLUMN_RECEIPT_STATUS},
+                    DatabaseHelper.COLUMN_RECEIPT_REQUEST_ID + " = ?",
+                    new String[]{String.valueOf(requestId)}, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    do {
+                        int statusIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_RECEIPT_STATUS);
+                        if (statusIdx != -1) {
+                            String receiptStatus = cursor.getString(statusIdx);
+                            if ("Pending Verification".equalsIgnoreCase(receiptStatus) || "Verified".equalsIgnoreCase(receiptStatus)) {
+                                hasActiveReceipt = true;
+                                break;
+                            }
+                        }
+                    } while (cursor.moveToNext());
+                }
+            } catch (Exception e) {
+                // Handle check error
+            } finally {
+                checkDb.close();
+            }
+
+            if (hasActiveReceipt) {
+                Toast.makeText(this, "A receipt is already submitted and awaiting verification.", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            // Step 3: Prevent duplicate taps by temporarily disabling submit button
+            binding.btnSubmitReceipt.setEnabled(false);
+            binding.btnSubmitReceipt.setText("Submitting...");
+
             SQLiteDatabase db = databaseHelper.getWritableDatabase();
             ContentValues values = new ContentValues();
             values.put(DatabaseHelper.COLUMN_RECEIPT_REQUEST_ID, requestId);
@@ -66,7 +147,7 @@ public class StudentReceiptPreviewActivity extends AppCompatActivity {
             try {
                 receiptId = db.insert(DatabaseHelper.TABLE_RECEIPTS, null, values);
                 if (receiptId != -1) {
-                    // Insert notification for receipt submission
+                    // Insert notification for successful receipt submission
                     ContentValues notifValues = new ContentValues();
                     notifValues.put(DatabaseHelper.COLUMN_NOTIF_USER_ID, userId);
                     notifValues.put(DatabaseHelper.COLUMN_NOTIF_TITLE, "Receipt Submitted");
@@ -93,6 +174,9 @@ public class StudentReceiptPreviewActivity extends AppCompatActivity {
                 startActivity(intent);
                 finish();
             } else {
+                // Restore button state on failure
+                binding.btnSubmitReceipt.setEnabled(true);
+                binding.btnSubmitReceipt.setText("Submit Receipt");
                 Toast.makeText(this, "Failed to submit receipt. Please try again.", Toast.LENGTH_SHORT).show();
             }
         });

@@ -13,7 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bpsudrive.databinding.ActivityStudentRequestDetailsBinding;
 
-// Request Details screen with request cancellation and payment/receipt instruction access using ViewBinding.
+// Request Details screen with cancelled request payment lockout and cancellation support using ViewBinding.
 public class StudentRequestDetailsActivity extends AppCompatActivity {
 
     private ActivityStudentRequestDetailsBinding binding;
@@ -34,13 +34,6 @@ public class StudentRequestDetailsActivity extends AppCompatActivity {
         long requestId = getIntent().getLongExtra("request_id", -1);
         if (requestId != -1) {
             loadRequestDetails(requestId);
-
-            // Wire primary action button to open Payment Instructions
-            binding.btnPrimaryAction.setOnClickListener(v -> {
-                Intent intent = new Intent(this, StudentPaymentInstructionsActivity.class);
-                intent.putExtra("request_id", requestId);
-                startActivity(intent);
-            });
         } else {
             Toast.makeText(this, "Request not found", Toast.LENGTH_SHORT).show();
             finish();
@@ -93,11 +86,31 @@ public class StudentRequestDetailsActivity extends AppCompatActivity {
                     binding.tvReceiptInfo.setText("Additional Info: " + (additional != null && !additional.isEmpty() ? additional : "None"));
                     binding.tvReceiptStatus.setText("Receipt Status: Pending Submission");
 
-                    // Show cancellation button ONLY if status is Pending
-                    if ("Pending".equalsIgnoreCase(status)) {
+                    // Manage primary action button and cancellation button based on request status
+                    if ("Cancelled".equalsIgnoreCase(status)) {
+                        // Lock out payment and receipt submission for cancelled requests
+                        binding.btnPrimaryAction.setVisibility(View.GONE);
+                        binding.btnCancelRequest.setVisibility(View.GONE);
+                    } else if ("Pending".equalsIgnoreCase(status)) {
+                        binding.btnPrimaryAction.setVisibility(View.VISIBLE);
+                        binding.btnPrimaryAction.setText("View Payment Instructions");
+                        binding.btnPrimaryAction.setOnClickListener(v -> {
+                            Intent intent = new Intent(this, StudentPaymentInstructionsActivity.class);
+                            intent.putExtra("request_id", requestId);
+                            startActivity(intent);
+                        });
+
                         binding.btnCancelRequest.setVisibility(View.VISIBLE);
                         binding.btnCancelRequest.setOnClickListener(v -> showCancelConfirmationDialog(requestId));
                     } else {
+                        // For other active/processing/completed statuses
+                        binding.btnPrimaryAction.setVisibility(View.VISIBLE);
+                        binding.btnPrimaryAction.setText("View Payment Instructions");
+                        binding.btnPrimaryAction.setOnClickListener(v -> {
+                            Intent intent = new Intent(this, StudentPaymentInstructionsActivity.class);
+                            intent.putExtra("request_id", requestId);
+                            startActivity(intent);
+                        });
                         binding.btnCancelRequest.setVisibility(View.GONE);
                     }
                 }
@@ -161,7 +174,7 @@ public class StudentRequestDetailsActivity extends AppCompatActivity {
 
         if (rowsAffected > 0) {
             Toast.makeText(this, "Request cancelled successfully", Toast.LENGTH_SHORT).show();
-            // Reload request details to reflect updated status and hide cancel button
+            // Reload request details to reflect updated status and hide cancel/payment buttons
             loadRequestDetails(requestId);
         } else {
             Toast.makeText(this, "Failed to cancel request. It may no longer be pending.", Toast.LENGTH_LONG).show();
