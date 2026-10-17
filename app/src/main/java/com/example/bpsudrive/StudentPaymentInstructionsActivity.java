@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bpsudrive.databinding.ActivityStudentPaymentInstructionsBinding;
 
-// Payment Instructions screen loading real request and fee data using ViewBinding.
+// Payment Instructions screen loading real request and fee data using ViewBinding with existing receipt checks.
 public class StudentPaymentInstructionsActivity extends AppCompatActivity {
 
     private ActivityStudentPaymentInstructionsBinding binding;
@@ -45,6 +45,23 @@ public class StudentPaymentInstructionsActivity extends AppCompatActivity {
         }
 
         SQLiteDatabase db = databaseHelper.getReadableDatabase();
+
+        // Step 1: Check if a receipt has already been submitted for this request
+        String existingReceiptStatus = null;
+        try (Cursor receiptCursor = db.query(DatabaseHelper.TABLE_RECEIPTS,
+                new String[]{DatabaseHelper.COLUMN_RECEIPT_STATUS},
+                DatabaseHelper.COLUMN_RECEIPT_REQUEST_ID + " = ?",
+                new String[]{String.valueOf(requestId)}, null, null, DatabaseHelper.COLUMN_ID + " DESC")) {
+            if (receiptCursor != null && receiptCursor.moveToFirst()) {
+                int statusIdx = receiptCursor.getColumnIndex(DatabaseHelper.COLUMN_RECEIPT_STATUS);
+                if (statusIdx != -1) {
+                    existingReceiptStatus = receiptCursor.getString(statusIdx);
+                }
+            }
+        } catch (Exception e) {
+            // Handle query error
+        }
+
         String query = "SELECT r.*, s." + DatabaseHelper.COLUMN_SERVICE_NAME + ", s." + DatabaseHelper.COLUMN_SERVICE_FEE +
                 " FROM " + DatabaseHelper.TABLE_REQUESTS + " r" +
                 " INNER JOIN " + DatabaseHelper.TABLE_SERVICES + " s ON r." + DatabaseHelper.COLUMN_REQUEST_SERVICE_ID + " = s." + DatabaseHelper.COLUMN_ID +
@@ -60,6 +77,19 @@ public class StudentPaymentInstructionsActivity extends AppCompatActivity {
                     String refNo = cursor.getString(refIdx);
                     String serviceName = cursor.getString(serviceNameIdx);
                     double fee = cursor.getDouble(feeIdx);
+
+                    // Step 2: If a receipt is already submitted (Pending Verification or Verified), route directly to Submitted screen
+                    if ("Pending Verification".equalsIgnoreCase(existingReceiptStatus) || "Verified".equalsIgnoreCase(existingReceiptStatus)) {
+                        Toast.makeText(this, "A receipt has already been submitted for this request.", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(this, StudentReceiptSubmittedActivity.class);
+                        intent.putExtra("request_id", requestId);
+                        intent.putExtra("reference_no", refNo);
+                        intent.putExtra("service_name", serviceName);
+                        intent.putExtra("service_fee", fee);
+                        startActivity(intent);
+                        finish();
+                        return;
+                    }
 
                     binding.tvPaymentTitle.setText(serviceName);
                     binding.tvPaymentAmount.setText("₱" + String.format("%.2f", fee));

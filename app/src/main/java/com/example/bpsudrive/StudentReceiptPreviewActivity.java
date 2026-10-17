@@ -15,8 +15,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.bpsudrive.databinding.ActivityStudentReceiptPreviewBinding;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
-// Receipt preview activity using ViewBinding, displaying captured image and inserting receipt record into SQLite.
+// Receipt preview activity using ViewBinding, displaying actual request, student, and receipt details from SQLite.
 public class StudentReceiptPreviewActivity extends AppCompatActivity {
 
     private ActivityStudentReceiptPreviewBinding binding;
@@ -45,9 +48,15 @@ public class StudentReceiptPreviewActivity extends AppCompatActivity {
             binding.tvReceiptReference.setText("Reference: " + refNo);
         }
         if (serviceName != null) {
-            binding.tvReceiptService.setText(serviceName);
+            binding.tvReceiptService.setText("Service: " + serviceName);
         }
         binding.tvReceiptAmount.setText("Amount: ₱" + String.format("%.2f", serviceFee));
+
+        // Dynamically load correct student name and request creation date from SQLite
+        int userId = sessionManager.getUserId();
+        if (requestId != -1 && userId != -1) {
+            loadRequestStudentAndDate(requestId, userId);
+        }
 
         // Load and display actual captured or selected receipt image if available
         if (imagePath != null) {
@@ -67,8 +76,8 @@ public class StudentReceiptPreviewActivity extends AppCompatActivity {
                 return;
             }
 
-            int userId = sessionManager.getUserId();
-            if (userId == -1) {
+            int currentUserId = sessionManager.getUserId();
+            if (currentUserId == -1) {
                 Toast.makeText(this, "Session expired. Please login again.", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -79,7 +88,7 @@ public class StudentReceiptPreviewActivity extends AppCompatActivity {
                     " FROM " + DatabaseHelper.TABLE_REQUESTS +
                     " WHERE " + DatabaseHelper.COLUMN_ID + " = ? AND " + DatabaseHelper.COLUMN_REQUEST_USER_ID + " = ?";
 
-            try (Cursor cursor = readDb.rawQuery(requestQuery, new String[]{String.valueOf(requestId), String.valueOf(userId)})) {
+            try (Cursor cursor = readDb.rawQuery(requestQuery, new String[]{String.valueOf(requestId), String.valueOf(currentUserId)})) {
                 if (cursor != null && cursor.moveToFirst()) {
                     int statusIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_REQUEST_STATUS);
                     if (statusIdx != -1) {
@@ -149,7 +158,7 @@ public class StudentReceiptPreviewActivity extends AppCompatActivity {
                 if (receiptId != -1) {
                     // Insert notification for successful receipt submission
                     ContentValues notifValues = new ContentValues();
-                    notifValues.put(DatabaseHelper.COLUMN_NOTIF_USER_ID, userId);
+                    notifValues.put(DatabaseHelper.COLUMN_NOTIF_USER_ID, currentUserId);
                     notifValues.put(DatabaseHelper.COLUMN_NOTIF_TITLE, "Receipt Submitted");
                     notifValues.put(DatabaseHelper.COLUMN_NOTIF_MESSAGE, "Your payment receipt for " + (refNo != null ? refNo : "Request") + " has been submitted for verification.");
                     notifValues.put(DatabaseHelper.COLUMN_NOTIF_TIMESTAMP, String.valueOf(System.currentTimeMillis()));
@@ -180,5 +189,49 @@ public class StudentReceiptPreviewActivity extends AppCompatActivity {
                 Toast.makeText(this, "Failed to submit receipt. Please try again.", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void loadRequestStudentAndDate(long requestId, int userId) {
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+        String query = "SELECT r." + DatabaseHelper.COLUMN_REQUEST_CREATED_AT + ", u." + DatabaseHelper.COLUMN_USER_NAME + ", u." + DatabaseHelper.COLUMN_USER_STUDENT_ID +
+                " FROM " + DatabaseHelper.TABLE_REQUESTS + " r" +
+                " INNER JOIN " + DatabaseHelper.TABLE_USERS + " u ON r." + DatabaseHelper.COLUMN_REQUEST_USER_ID + " = u." + DatabaseHelper.COLUMN_ID +
+                " WHERE r." + DatabaseHelper.COLUMN_ID + " = ? AND r." + DatabaseHelper.COLUMN_REQUEST_USER_ID + " = ?";
+
+        try (Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(requestId), String.valueOf(userId)})) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int nameIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_USER_NAME);
+                int studentIdIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_USER_STUDENT_ID);
+                int createdAtIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_REQUEST_CREATED_AT);
+
+                if (nameIdx != -1 && studentIdIdx != -1) {
+                    String studentName = cursor.getString(nameIdx);
+                    String studentId = cursor.getString(studentIdIdx);
+                    binding.tvReceiptStudent.setText("Student: " + studentName + " (" + studentId + ")");
+                }
+
+                if (createdAtIdx != -1) {
+                    String rawDate = cursor.getString(createdAtIdx);
+                    binding.tvReceiptDate.setText("Request Date: " + formatDate(rawDate));
+                }
+            }
+        } catch (Exception e) {
+            // Handle error
+        } finally {
+            db.close();
+        }
+    }
+
+    private String formatDate(String rawDate) {
+        if (rawDate == null || rawDate.isEmpty()) {
+            return "N/A";
+        }
+        try {
+            long time = Long.parseLong(rawDate);
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM d, yyyy", Locale.US);
+            return sdf.format(new Date(time));
+        } catch (Exception e) {
+            return rawDate;
+        }
     }
 }
