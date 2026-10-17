@@ -3,6 +3,8 @@ package com.example.bpsudrive;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.widget.TextView;
@@ -11,7 +13,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bpsudrive.databinding.ActivityStudentProfileBinding;
 
-// Student profile screen using ViewBinding, loading user data from SQLite, and handling logout.
+import java.io.File;
+
+// Student profile screen using ViewBinding, loading user data and profile photo from SQLite/SessionManager, and handling logout.
 public class StudentProfileActivity extends AppCompatActivity {
 
     private ActivityStudentProfileBinding binding;
@@ -101,6 +105,20 @@ public class StudentProfileActivity extends AppCompatActivity {
         } finally {
             db.close();
         }
+
+        // Load profile photo if available
+        String photoPath = sessionManager.getProfilePhotoPath(userId);
+        if (photoPath != null) {
+            File file = new File(photoPath);
+            if (file.exists()) {
+                Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                if (bitmap != null) {
+                    binding.profileImage.setImageBitmap(bitmap);
+                    return;
+                }
+            }
+        }
+        binding.profileImage.setImageResource(R.drawable.ic_profile_avatar);
     }
 
     private void handleLogout() {

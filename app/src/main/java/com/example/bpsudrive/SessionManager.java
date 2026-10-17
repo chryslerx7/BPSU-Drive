@@ -3,7 +3,7 @@ package com.example.bpsudrive;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-// Lightweight session manager using SharedPreferences for managing local student login state.
+// Lightweight session manager using SharedPreferences for managing local student login state and profile photo paths.
 public class SessionManager {
 
     private static final String PREF_NAME = "BpsuDrivePrefs";
@@ -40,6 +40,23 @@ public class SessionManager {
     // Get logged-in student ID
     public String getStudentId() {
         return prefs.getString(KEY_STUDENT_ID, null);
+    }
+
+    // Save profile photo path per user securely in SharedPreferences
+    public void saveProfilePhotoPath(int userId, String path) {
+        editor.putString("profile_photo_" + userId, path);
+        editor.commit();
+    }
+
+    // Get profile photo path per user
+    public String getProfilePhotoPath(int userId) {
+        return prefs.getString("profile_photo_" + userId, null);
+    }
+
+    // Clear profile photo path per user
+    public void clearProfilePhotoPath(int userId) {
+        editor.remove("profile_photo_" + userId);
+        editor.commit();
     }
 
     // Clear session on logout synchronously
