@@ -5,6 +5,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -14,7 +16,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.bpsudrive.databinding.ActivityStudentMyRequestsBinding;
 import com.google.android.material.card.MaterialCardView;
 
-// My Requests screen loading real SQLite request records for the logged-in student using ViewBinding.
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+
+// My Requests screen loading real SQLite request records with search, status filtering, and creation date display.
 public class StudentMyRequestsActivity extends AppCompatActivity {
 
     private ActivityStudentMyRequestsBinding binding;
@@ -22,6 +29,7 @@ public class StudentMyRequestsActivity extends AppCompatActivity {
     private SessionManager sessionManager;
 
     private Filter currentFilter = Filter.ALL;
+    private String searchQuery = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,10 +40,27 @@ public class StudentMyRequestsActivity extends AppCompatActivity {
         databaseHelper = new DatabaseHelper(this);
         sessionManager = new SessionManager(this);
 
+        // Wire tab click listeners
         binding.tabAll.setOnClickListener(v -> selectFilter(Filter.ALL));
         binding.tabPending.setOnClickListener(v -> selectFilter(Filter.PENDING));
         binding.tabProcessing.setOnClickListener(v -> selectFilter(Filter.PROCESSING));
         binding.tabCompleted.setOnClickListener(v -> selectFilter(Filter.COMPLETED));
+        binding.tabCancelled.setOnClickListener(v -> selectFilter(Filter.CANCELLED));
+
+        // Wire real-time search input
+        binding.etSearchRequests.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                searchQuery = s.toString().trim();
+                loadRequests();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
 
         // Wire bottom navigation
         binding.navHome.setOnClickListener(v -> {
@@ -58,7 +83,7 @@ public class StudentMyRequestsActivity extends AppCompatActivity {
         loadRequests();
     }
 
-    private enum Filter { ALL, PENDING, PROCESSING, COMPLETED }
+    private enum Filter { ALL, PENDING, PROCESSING, COMPLETED, CANCELLED }
 
     private void selectFilter(Filter filter) {
         currentFilter = filter;
@@ -66,6 +91,7 @@ public class StudentMyRequestsActivity extends AppCompatActivity {
         styleTab(binding.tabPending, filter == Filter.PENDING);
         styleTab(binding.tabProcessing, filter == Filter.PROCESSING);
         styleTab(binding.tabCompleted, filter == Filter.COMPLETED);
+        styleTab(binding.tabCancelled, filter == Filter.CANCELLED);
 
         loadRequests();
     }
@@ -79,26 +105,40 @@ public class StudentMyRequestsActivity extends AppCompatActivity {
         binding.containerRequests.removeAllViews();
 
         SQLiteDatabase db = databaseHelper.getReadableDatabase();
-        String query = "SELECT r.*, s." + DatabaseHelper.COLUMN_SERVICE_NAME + ", s." + DatabaseHelper.COLUMN_SERVICE_FEE +
-                " FROM " + DatabaseHelper.TABLE_REQUESTS + " r" +
-                " INNER JOIN " + DatabaseHelper.TABLE_SERVICES + " s ON r." + DatabaseHelper.COLUMN_REQUEST_SERVICE_ID + " = s." + DatabaseHelper.COLUMN_ID +
-                " WHERE r." + DatabaseHelper.COLUMN_REQUEST_USER_ID + " = ?";
+        StringBuilder query = new StringBuilder();
+        query.append("SELECT r.*, s.").append(DatabaseHelper.COLUMN_SERVICE_NAME).append(", s.").append(DatabaseHelper.COLUMN_SERVICE_FEE)
+                .append(" FROM ").append(DatabaseHelper.TABLE_REQUESTS).append(" r")
+                .append(" INNER JOIN ").append(DatabaseHelper.TABLE_SERVICES).append(" s ON r.").append(DatabaseHelper.COLUMN_REQUEST_SERVICE_ID).append(" = s.").append(DatabaseHelper.COLUMN_ID)
+                .append(" WHERE r.").append(DatabaseHelper.COLUMN_REQUEST_USER_ID).append(" = ?");
+
+        ArrayList<String> queryArgs = new ArrayList<>();
+        queryArgs.add(String.valueOf(userId));
 
         if (currentFilter == Filter.PENDING) {
-            query += " AND r." + DatabaseHelper.COLUMN_REQUEST_STATUS + " = 'Pending'";
+            query.append(" AND r.").append(DatabaseHelper.COLUMN_REQUEST_STATUS).append(" = 'Pending'");
         } else if (currentFilter == Filter.PROCESSING) {
-            query += " AND r." + DatabaseHelper.COLUMN_REQUEST_STATUS + " = 'Processing'";
+            query.append(" AND r.").append(DatabaseHelper.COLUMN_REQUEST_STATUS).append(" = 'Processing'");
         } else if (currentFilter == Filter.COMPLETED) {
-            query += " AND r." + DatabaseHelper.COLUMN_REQUEST_STATUS + " = 'Completed'";
+            query.append(" AND r.").append(DatabaseHelper.COLUMN_REQUEST_STATUS).append(" = 'Completed'");
+        } else if (currentFilter == Filter.CANCELLED) {
+            query.append(" AND r.").append(DatabaseHelper.COLUMN_REQUEST_STATUS).append(" = 'Cancelled'");
         }
-        query += " ORDER BY r." + DatabaseHelper.COLUMN_ID + " DESC";
 
-        try (Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)})) {
+        if (searchQuery != null && !searchQuery.isEmpty()) {
+            query.append(" AND (s.").append(DatabaseHelper.COLUMN_SERVICE_NAME).append(" LIKE ? OR r.").append(DatabaseHelper.COLUMN_REQUEST_REF_NO).append(" LIKE ?)");
+            queryArgs.add("%" + searchQuery + "%");
+            queryArgs.add("%" + searchQuery + "%");
+        }
+
+        query.append(" ORDER BY r.").append(DatabaseHelper.COLUMN_ID).append(" DESC");
+
+        try (Cursor cursor = db.rawQuery(query.toString(), queryArgs.toArray(new String[0]))) {
             if (cursor != null && cursor.moveToFirst()) {
                 int idIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_ID);
                 int refIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_REQUEST_REF_NO);
                 int serviceNameIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_SERVICE_NAME);
                 int statusIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_REQUEST_STATUS);
+                int dateIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_REQUEST_CREATED_AT);
 
                 do {
                     if (idIdx == -1 || refIdx == -1 || serviceNameIdx == -1 || statusIdx == -1) {
@@ -109,13 +149,14 @@ public class StudentMyRequestsActivity extends AppCompatActivity {
                     String refNo = cursor.getString(refIdx);
                     String serviceName = cursor.getString(serviceNameIdx);
                     String status = cursor.getString(statusIdx);
+                    String rawDate = dateIdx != -1 ? cursor.getString(dateIdx) : "";
 
-                    addRequestCard(requestId, refNo, serviceName, status);
+                    addRequestCard(requestId, refNo, serviceName, status, formatDate(rawDate));
                 } while (cursor.moveToNext());
             } else {
                 // Show empty state
                 TextView emptyView = new TextView(this);
-                emptyView.setText("No requests found.");
+                emptyView.setText(searchQuery.isEmpty() ? "No requests found." : "No requests match '" + searchQuery + "'.");
                 emptyView.setTextColor(getColor(R.color.text_secondary));
                 emptyView.setTextSize(14);
                 emptyView.setGravity(Gravity.CENTER);
@@ -129,7 +170,20 @@ public class StudentMyRequestsActivity extends AppCompatActivity {
         }
     }
 
-    private void addRequestCard(long requestId, String refNo, String serviceName, String status) {
+    private String formatDate(String rawDate) {
+        if (rawDate == null || rawDate.isEmpty()) {
+            return "";
+        }
+        try {
+            long time = Long.parseLong(rawDate);
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM d, yyyy", Locale.US);
+            return sdf.format(new Date(time));
+        } catch (Exception e) {
+            return rawDate;
+        }
+    }
+
+    private void addRequestCard(long requestId, String refNo, String serviceName, String status, String formattedDate) {
         float density = getResources().getDisplayMetrics().density;
 
         MaterialCardView card = new MaterialCardView(this);
@@ -155,11 +209,24 @@ public class StudentMyRequestsActivity extends AppCompatActivity {
         int padding = (int) (16 * density);
         innerLayout.setPadding(padding, padding, padding, padding);
 
+        LinearLayout metaHeader = new LinearLayout(this);
+        metaHeader.setOrientation(LinearLayout.HORIZONTAL);
+
         TextView tvRef = new TextView(this);
         tvRef.setText("Request #" + refNo);
         tvRef.setTextColor(getColor(R.color.bpsu_maroon));
         tvRef.setTextSize(13);
         tvRef.setTypeface(null, Typeface.BOLD);
+        LinearLayout.LayoutParams refParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        tvRef.setLayoutParams(refParams);
+
+        TextView tvDate = new TextView(this);
+        tvDate.setText(formattedDate);
+        tvDate.setTextColor(getColor(R.color.text_secondary));
+        tvDate.setTextSize(12);
+
+        metaHeader.addView(tvRef);
+        metaHeader.addView(tvDate);
 
         TextView tvService = new TextView(this);
         tvService.setText(serviceName);
@@ -186,7 +253,7 @@ public class StudentMyRequestsActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        innerLayout.addView(tvRef);
+        innerLayout.addView(metaHeader);
         innerLayout.addView(tvService);
         innerLayout.addView(tvStatus);
         innerLayout.addView(btnDetails);
