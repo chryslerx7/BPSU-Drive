@@ -87,6 +87,7 @@
                             android:id="@+id/et_full_name"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:textColor="@color/text_primary"
                             android:inputType="textPersonName" />
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -103,6 +104,7 @@
                             android:id="@+id/et_student_id"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:textColor="@color/text_primary"
                             android:inputType="text" />
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -119,6 +121,7 @@
                             android:id="@+id/et_email"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:textColor="@color/text_primary"
                             android:inputType="textEmailAddress" />
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -129,14 +132,14 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/auth_field_spacing"
                         android:hint="@string/label_password"
-                        app:placeholderText="••••••••"
-                        app:suffixText="Show"
-                        app:suffixTextColor="@color/bpsu_maroon">
+                        app:endIconMode="password_toggle"
+                        app:placeholderText="••••••••">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_password"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:textColor="@color/text_primary"
                             android:inputType="textPassword" />
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -147,14 +150,14 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/auth_field_spacing"
                         android:hint="@string/label_confirm_password"
-                        app:placeholderText="••••••••"
-                        app:suffixText="Show"
-                        app:suffixTextColor="@color/bpsu_maroon">
+                        app:endIconMode="password_toggle"
+                        app:placeholderText="••••••••">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_confirm_password"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:textColor="@color/text_primary"
                             android:inputType="textPassword" />
                     </com.google.android.material.textfield.TextInputLayout>
 

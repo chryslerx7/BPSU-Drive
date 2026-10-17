@@ -27,6 +27,15 @@ public class StudentProfileActivity extends AppCompatActivity {
         sessionManager = new SessionManager(this);
         databaseHelper = new DatabaseHelper(this);
 
+        // Verify valid student session
+        if (!sessionManager.isLoggedIn()) {
+            Intent intent = new Intent(this, StudentLoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         markSelected(binding.bottomNav.navProfile);
         markUnselected(binding.bottomNav.navHome);
 
@@ -46,8 +55,18 @@ public class StudentProfileActivity extends AppCompatActivity {
             finish();
         });
 
+        // Wire profile actions
+        binding.btnEditProfile.setOnClickListener(v -> startActivity(new Intent(this, EditProfileActivity.class)));
+        binding.btnChangePassword.setOnClickListener(v -> startActivity(new Intent(this, ChangePasswordActivity.class)));
+
         // Handle logout action
         binding.btnLogout.setOnClickListener(v -> handleLogout());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadUserProfile();
     }
 
     private void loadUserProfile() {

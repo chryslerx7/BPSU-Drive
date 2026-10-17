@@ -12,8 +12,8 @@
     <string name="label_password">Password</string>
     <string name="action_login">Login</string>
     <string name="action_create_account">Create Account</string>
-    <string name="action_forgot">Forgot Password · demo placeholder</string>
-    <string name="note_login_recovery">Account recovery is not connected in this local demo. Contact your authorized office for assistance.</string>
+    <string name="action_forgot">Forgot Password</string>
+    <string name="note_login_recovery">Contact your authorized campus office for account recovery assistance.</string>
 
     <string name="register_title">Create student account</string>
     <string name="register_subtitle">Use your authorized BPSU school email.</string>
@@ -62,7 +62,7 @@
     <string name="service_id_fee">Fee, if any, subject to office confirmation</string>
     <string name="service_inquiry_title">General Inquiry</string>
     <string name="service_inquiry_desc">Send a question to the authorized campus office.</string>
-    <string name="service_inquiry_fee">Free · illustrative demo service</string>
+    <string name="service_inquiry_fee">Free · General inquiry service</string>
     <string name="service_view">View Service →</string>
     <string name="services_footer">Fees and processing schedules not specified in this case study are illustrative or subject to office confirmation.</string>
 
@@ -163,21 +163,21 @@
 
     <string name="camera_title">Camera Receipt Capture</string>
     <string name="camera_instruction">Place the full receipt inside the guide. Keep the amount and date readable.</string>
-    <string name="camera_hint">STATIC CAMERA WIREFRAME</string>
+    <string name="camera_hint">LIVE CAMERA PREVIEW</string>
     <string name="camera_capture_desc">Capture receipt photo</string>
 
     <string name="preview_header">Receipt Preview</string>
     <string name="preview_title">Check your receipt photo</string>
     <string name="preview_reference">Request #000124 · Certificate Request</string>
-    <string name="preview_wireframe_banner">ILLUSTRATIVE WIREFRAME — NOT A VALID RECEIPT</string>
-    <string name="preview_sample_title">Cashier receipt · sample</string>
+    <string name="preview_wireframe_banner">RECEIPT PREVIEW</string>
+    <string name="preview_sample_title">Cashier receipt</string>
     <string name="preview_sample_student">Student: Juan Dela Cruz</string>
     <string name="preview_sample_service">Service: Certificate Request</string>
     <string name="preview_sample_amount">Amount: ₱50.00</string>
     <string name="preview_sample_date">Date: October 7, 2026</string>
-    <string name="preview_sample_number">Sample receipt number: DEMO-0124</string>
+    <string name="preview_sample_number">Receipt number: BPSU-0124</string>
     <string name="preview_sample_note">Reference only. Not official payment evidence.</string>
-    <string name="preview_instruction">Make sure the full receipt is visible and the student, amount, and date are legible. This sample is a wireframe placeholder, not official evidence.</string>
+    <string name="preview_instruction">Make sure the full receipt is visible and the student, amount, and date are legible.</string>
     <string name="preview_submit">Submit Receipt</string>
     <string name="preview_retake">Retake</string>
 
@@ -255,7 +255,7 @@
     <string name="notif4_title">Request Completed</string>
     <string name="notif4_msg">#000120 · Check collection instructions with the office.</string>
     <string name="notif4_time">Yesterday · 2:30 PM</string>
-    <string name="notif_footer">Demo notifications represent different lifecycle states. Local notification behavior only; cross-device delivery is not connected.</string>
+    <string name="notif_footer">Notifications display your recent request updates and submission statuses.</string>
 
     <string name="profile_title">Student Profile</string>
     <string name="profile_name">Juan Dela Cruz</string>
