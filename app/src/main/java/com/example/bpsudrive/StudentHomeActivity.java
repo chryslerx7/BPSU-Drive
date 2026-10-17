@@ -62,6 +62,12 @@ public class StudentHomeActivity extends AppCompatActivity {
                 startActivity(new Intent(this, StudentRequestDetailsActivity.class)));
         binding.btnNewRequest.setOnClickListener(v ->
                 startActivity(new Intent(this, StudentCreateRequestActivity.class)));
+
+        // Wire available service rows to open StudentServicesActivity
+        binding.rowService1.setOnClickListener(v -> startActivity(new Intent(this, StudentServicesActivity.class)));
+        binding.rowService2.setOnClickListener(v -> startActivity(new Intent(this, StudentServicesActivity.class)));
+        binding.rowService3.setOnClickListener(v -> startActivity(new Intent(this, StudentServicesActivity.class)));
+        binding.rowService4.setOnClickListener(v -> startActivity(new Intent(this, StudentServicesActivity.class)));
     }
 
     private void loadUserGreeting() {
@@ -80,7 +86,6 @@ public class StudentHomeActivity extends AppCompatActivity {
                 int nameIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_USER_NAME);
                 if (nameIdx != -1) {
                     String fullName = cursor.getString(nameIdx);
-                    // Extract first name for greeting
                     String firstName = fullName.split(" ")[0];
                     binding.tvGreeting.setText("Good morning, " + firstName);
                 } else {

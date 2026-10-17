@@ -314,6 +314,18 @@
                 android:layout_height="@dimen/auth_button_height"
                 android:layout_marginTop="16dp"
                 android:text="@string/details_view_receipt" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancelRequest"
+                style="@style/Widget.BPSU.Button.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/auth_button_height"
+                android:layout_marginTop="8dp"
+                android:text="Cancel Request"
+                android:textColor="@color/bpsu_maroon"
+                android:visibility="gone"
+                app:strokeColor="@color/bpsu_maroon"
+                app:strokeWidth="1dp" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

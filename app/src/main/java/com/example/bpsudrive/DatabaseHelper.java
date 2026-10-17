@@ -2,9 +2,11 @@ package com.example.bpsudrive;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Base64;
+import android.util.Log;
 
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -12,18 +14,19 @@ import java.security.spec.KeySpec;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
-// Beginner-friendly SQLite database helper for BPSU Drive with database safety corrections.
-// Features PBKDF2 salted password hashing, safe transactional upgrades, and foreign key integrity.
+// Beginner-friendly SQLite database helper for BPSU Drive with robust notifications migration and diagnostics.
 public class DatabaseHelper extends SQLiteOpenHelper {
 
+    private static final String TAG = "BpsuDriveDB";
     private static final String DATABASE_NAME = "bpsu_drive.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 4;
 
     // Table names
     public static final String TABLE_USERS = "users";
     public static final String TABLE_SERVICES = "service_types";
     public static final String TABLE_REQUESTS = "requests";
     public static final String TABLE_RECEIPTS = "receipts";
+    public static final String TABLE_NOTIFICATIONS = "notifications";
 
     // Common column names
     public static final String COLUMN_ID = "id";
@@ -55,6 +58,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_RECEIPT_STATUS = "verification_status";
     public static final String COLUMN_RECEIPT_SUBMITTED_AT = "submitted_at";
 
+    // Notifications table columns
+    public static final String COLUMN_NOTIF_USER_ID = "user_id";
+    public static final String COLUMN_NOTIF_TITLE = "title";
+    public static final String COLUMN_NOTIF_MESSAGE = "message";
+    public static final String COLUMN_NOTIF_TIMESTAMP = "timestamp";
+    public static final String COLUMN_NOTIF_IS_READ = "is_read";
+    public static final String COLUMN_NOTIF_REQUEST_ID = "request_id";
+
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -68,8 +79,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // Create users table (stores student account info with secure password hash and salt)
-        String CREATE_USERS_TABLE = "CREATE TABLE " + TABLE_USERS + "("
+        Log.d(TAG, "onCreate executing. Creating tables...");
+        // Create users table
+        String CREATE_USERS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_USERS + "("
                 + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + COLUMN_USER_STUDENT_ID + " TEXT UNIQUE NOT NULL, "
                 + COLUMN_USER_NAME + " TEXT NOT NULL, "
@@ -77,16 +89,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COLUMN_USER_PASSWORD_HASH + " TEXT NOT NULL, "
                 + COLUMN_USER_COURSE + " TEXT NOT NULL" + ")";
 
-        // Create service_types table (stores available campus services and fees)
-        String CREATE_SERVICES_TABLE = "CREATE TABLE " + TABLE_SERVICES + "("
+        // Create service_types table
+        String CREATE_SERVICES_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_SERVICES + "("
                 + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + COLUMN_SERVICE_NAME + " TEXT NOT NULL, "
                 + COLUMN_SERVICE_FEE + " REAL NOT NULL, "
                 + COLUMN_SERVICE_DESC + " TEXT NOT NULL" + ")";
 
-        // Create requests table (stores student service requests linked to user and service)
-        // Note: Request cancellation updates status to 'Cancelled'; records are preserved, not deleted.
-        String CREATE_REQUESTS_TABLE = "CREATE TABLE " + TABLE_REQUESTS + "("
+        // Create requests table
+        String CREATE_REQUESTS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_REQUESTS + "("
                 + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + COLUMN_REQUEST_USER_ID + " INTEGER NOT NULL, "
                 + COLUMN_REQUEST_SERVICE_ID + " INTEGER NOT NULL, "
@@ -98,8 +109,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + "FOREIGN KEY(" + COLUMN_REQUEST_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_ID + "), "
                 + "FOREIGN KEY(" + COLUMN_REQUEST_SERVICE_ID + ") REFERENCES " + TABLE_SERVICES + "(" + COLUMN_ID + ")" + ")";
 
-        // Create receipts table (stores payment receipt image paths and verification review status)
-        String CREATE_RECEIPTS_TABLE = "CREATE TABLE " + TABLE_RECEIPTS + "("
+        // Create receipts table
+        String CREATE_RECEIPTS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_RECEIPTS + "("
                 + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + COLUMN_RECEIPT_REQUEST_ID + " INTEGER NOT NULL, "
                 + COLUMN_RECEIPT_IMAGE_PATH + " TEXT NOT NULL, "
@@ -107,25 +118,94 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COLUMN_RECEIPT_SUBMITTED_AT + " TEXT NOT NULL, "
                 + "FOREIGN KEY(" + COLUMN_RECEIPT_REQUEST_ID + ") REFERENCES " + TABLE_REQUESTS + "(" + COLUMN_ID + ") ON DELETE CASCADE" + ")";
 
+        // Create notifications table
+        String CREATE_NOTIFICATIONS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_NOTIFICATIONS + "("
+                + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + COLUMN_NOTIF_USER_ID + " INTEGER NOT NULL, "
+                + COLUMN_NOTIF_TITLE + " TEXT NOT NULL, "
+                + COLUMN_NOTIF_MESSAGE + " TEXT NOT NULL, "
+                + COLUMN_NOTIF_TIMESTAMP + " TEXT NOT NULL, "
+                + COLUMN_NOTIF_IS_READ + " INTEGER NOT NULL DEFAULT 0, "
+                + COLUMN_NOTIF_REQUEST_ID + " INTEGER, "
+                + "FOREIGN KEY(" + COLUMN_NOTIF_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_ID + ") ON DELETE CASCADE, "
+                + "FOREIGN KEY(" + COLUMN_NOTIF_REQUEST_ID + ") REFERENCES " + TABLE_REQUESTS + "(" + COLUMN_ID + ") ON DELETE SET NULL" + ")";
+
         // Execute table creation queries
         db.execSQL(CREATE_USERS_TABLE);
         db.execSQL(CREATE_SERVICES_TABLE);
         db.execSQL(CREATE_REQUESTS_TABLE);
         db.execSQL(CREATE_RECEIPTS_TABLE);
+        db.execSQL(CREATE_NOTIFICATIONS_TABLE);
+        Log.d(TAG, "All tables created successfully.");
 
-        // Seed initial predefined campus service types
-        seedServiceTypes(db);
+        // Seed initial predefined campus service types if table is empty
+        try (Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_SERVICES, null)) {
+            if (cursor != null && cursor.moveToFirst() && cursor.getInt(0) == 0) {
+                seedServiceTypes(db);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error checking service catalog count", e);
+            seedServiceTypes(db);
+        }
     }
 
-    // Safe incremental upgrade strategy to preserve existing user and request data
+    // Safe incremental upgrade strategy preserving existing data and ensuring all tables exist
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        Log.d(TAG, "onUpgrade executing from version " + oldVersion + " to " + newVersion);
         db.beginTransaction();
         try {
-            // Future schema migrations will be handled incrementally here (e.g., if (oldVersion < 2) { ... })
+            String CREATE_USERS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_USERS + "("
+                    + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + COLUMN_USER_STUDENT_ID + " TEXT UNIQUE NOT NULL, "
+                    + COLUMN_USER_NAME + " TEXT NOT NULL, "
+                    + COLUMN_USER_EMAIL + " TEXT NOT NULL, "
+                    + COLUMN_USER_PASSWORD_HASH + " TEXT NOT NULL, "
+                    + COLUMN_USER_COURSE + " TEXT NOT NULL" + ")";
+            String CREATE_SERVICES_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_SERVICES + "("
+                    + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + COLUMN_SERVICE_NAME + " TEXT NOT NULL, "
+                    + COLUMN_SERVICE_FEE + " REAL NOT NULL, "
+                    + COLUMN_SERVICE_DESC + " TEXT NOT NULL" + ")";
+            String CREATE_REQUESTS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_REQUESTS + "("
+                    + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + COLUMN_REQUEST_USER_ID + " INTEGER NOT NULL, "
+                    + COLUMN_REQUEST_SERVICE_ID + " INTEGER NOT NULL, "
+                    + COLUMN_REQUEST_REF_NO + " TEXT UNIQUE NOT NULL, "
+                    + COLUMN_REQUEST_PURPOSE + " TEXT NOT NULL, "
+                    + COLUMN_REQUEST_ADDITIONAL + " TEXT, "
+                    + COLUMN_REQUEST_STATUS + " TEXT NOT NULL, "
+                    + COLUMN_REQUEST_CREATED_AT + " TEXT NOT NULL, "
+                    + "FOREIGN KEY(" + COLUMN_REQUEST_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_ID + "), "
+                    + "FOREIGN KEY(" + COLUMN_REQUEST_SERVICE_ID + ") REFERENCES " + TABLE_SERVICES + "(" + COLUMN_ID + ")" + ")";
+            String CREATE_RECEIPTS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_RECEIPTS + "("
+                    + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + COLUMN_RECEIPT_REQUEST_ID + " INTEGER NOT NULL, "
+                    + COLUMN_RECEIPT_IMAGE_PATH + " TEXT NOT NULL, "
+                    + COLUMN_RECEIPT_STATUS + " TEXT NOT NULL, "
+                    + COLUMN_RECEIPT_SUBMITTED_AT + " TEXT NOT NULL, "
+                    + "FOREIGN KEY(" + COLUMN_RECEIPT_REQUEST_ID + ") REFERENCES " + TABLE_REQUESTS + "(" + COLUMN_ID + ") ON DELETE CASCADE" + ")";
+            String CREATE_NOTIFICATIONS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_NOTIFICATIONS + "("
+                    + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + COLUMN_NOTIF_USER_ID + " INTEGER NOT NULL, "
+                    + COLUMN_NOTIF_TITLE + " TEXT NOT NULL, "
+                    + COLUMN_NOTIF_MESSAGE + " TEXT NOT NULL, "
+                    + COLUMN_NOTIF_TIMESTAMP + " TEXT NOT NULL, "
+                    + COLUMN_NOTIF_IS_READ + " INTEGER NOT NULL DEFAULT 0, "
+                    + COLUMN_NOTIF_REQUEST_ID + " INTEGER, "
+                    + "FOREIGN KEY(" + COLUMN_NOTIF_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_ID + ") ON DELETE CASCADE, "
+                    + "FOREIGN KEY(" + COLUMN_NOTIF_REQUEST_ID + ") REFERENCES " + TABLE_REQUESTS + "(" + COLUMN_ID + ") ON DELETE SET NULL" + ")";
+
+            db.execSQL(CREATE_USERS_TABLE);
+            db.execSQL(CREATE_SERVICES_TABLE);
+            db.execSQL(CREATE_REQUESTS_TABLE);
+            db.execSQL(CREATE_RECEIPTS_TABLE);
+            db.execSQL(CREATE_NOTIFICATIONS_TABLE);
+
             db.setTransactionSuccessful();
+            Log.d(TAG, "onUpgrade completed successfully.");
         } catch (Exception e) {
-            // Handle migration exception without dropping data tables
+            Log.e(TAG, "Error during onUpgrade", e);
         } finally {
             db.endTransaction();
         }

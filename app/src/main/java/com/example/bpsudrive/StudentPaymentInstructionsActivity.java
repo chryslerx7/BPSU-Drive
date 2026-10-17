@@ -1,23 +1,88 @@
 package com.example.bpsudrive;
 
+import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-// UI-only Payment Instructions screen (step 1 of the receipt workflow).
-// Static sample data only. No payment processing, no SQLite,
-// no receipt/camera logic. btnContinue is visual-only for now;
-// Phase J will handle receipt capture.
-// Exposed IDs for later wiring:
-// tvPaymentTitle, tvPaymentAmount, tvPaymentReference,
-// tvPaymentMethod, tvInstructionStep1-4, tvPaymentReminder,
-// btnContinue, btn_back
+import com.example.bpsudrive.databinding.ActivityStudentPaymentInstructionsBinding;
+
+// Payment Instructions screen loading real request and fee data using ViewBinding.
 public class StudentPaymentInstructionsActivity extends AppCompatActivity {
+
+    private ActivityStudentPaymentInstructionsBinding binding;
+    private DatabaseHelper databaseHelper;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_student_payment_instructions);
-        findViewById(R.id.btn_back).setOnClickListener(v -> finish());
+        binding = ActivityStudentPaymentInstructionsBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        databaseHelper = new DatabaseHelper(this);
+        sessionManager = new SessionManager(this);
+
+        binding.btnBack.setOnClickListener(v -> finish());
+
+        long requestId = getIntent().getLongExtra("request_id", -1);
+        if (requestId != -1) {
+            loadPaymentDetails(requestId);
+        } else {
+            Toast.makeText(this, "Request not found", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+    }
+
+    private void loadPaymentDetails(long requestId) {
+        int userId = sessionManager.getUserId();
+        if (userId == -1) {
+            finish();
+            return;
+        }
+
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+        String query = "SELECT r.*, s." + DatabaseHelper.COLUMN_SERVICE_NAME + ", s." + DatabaseHelper.COLUMN_SERVICE_FEE +
+                " FROM " + DatabaseHelper.TABLE_REQUESTS + " r" +
+                " INNER JOIN " + DatabaseHelper.TABLE_SERVICES + " s ON r." + DatabaseHelper.COLUMN_REQUEST_SERVICE_ID + " = s." + DatabaseHelper.COLUMN_ID +
+                " WHERE r." + DatabaseHelper.COLUMN_ID + " = ? AND r." + DatabaseHelper.COLUMN_REQUEST_USER_ID + " = ?";
+
+        try (Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(requestId), String.valueOf(userId)})) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int refIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_REQUEST_REF_NO);
+                int serviceNameIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_SERVICE_NAME);
+                int feeIdx = cursor.getColumnIndex(DatabaseHelper.COLUMN_SERVICE_FEE);
+
+                if (refIdx != -1 && serviceNameIdx != -1 && feeIdx != -1) {
+                    String refNo = cursor.getString(refIdx);
+                    String serviceName = cursor.getString(serviceNameIdx);
+                    double fee = cursor.getDouble(feeIdx);
+
+                    binding.tvPaymentTitle.setText(serviceName);
+                    binding.tvPaymentAmount.setText("₱" + String.format("%.2f", fee));
+                    binding.tvPaymentReference.setText("Reference No: " + refNo);
+
+                    binding.btnContinue.setOnClickListener(v -> {
+                        Intent intent = new Intent(this, StudentCameraReceiptActivity.class);
+                        intent.putExtra("request_id", requestId);
+                        intent.putExtra("service_name", serviceName);
+                        intent.putExtra("service_fee", fee);
+                        intent.putExtra("reference_no", refNo);
+                        startActivity(intent);
+                    });
+                }
+            } else {
+                Toast.makeText(this, "Request access denied or not found", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Error loading payment instructions", Toast.LENGTH_SHORT).show();
+            finish();
+        } finally {
+            db.close();
+        }
     }
 }

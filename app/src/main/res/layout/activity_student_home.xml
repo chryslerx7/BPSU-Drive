@@ -162,6 +162,7 @@
                 android:textAppearance="@style/TextAppearance.BPSU.SectionTitle" />
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_services_catalog"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -179,8 +180,12 @@
                     android:orientation="vertical">
 
                     <LinearLayout
+                        android:id="@+id/row_service_1"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="16dp">
@@ -214,8 +219,12 @@
                         android:background="@color/stroke_grey" />
 
                     <LinearLayout
+                        android:id="@+id/row_service_2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="16dp">
@@ -249,8 +258,12 @@
                         android:background="@color/stroke_grey" />
 
                     <LinearLayout
+                        android:id="@+id/row_service_3"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="16dp">
@@ -284,8 +297,12 @@
                         android:background="@color/stroke_grey" />
 
                     <LinearLayout
+                        android:id="@+id/row_service_4"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="16dp">
