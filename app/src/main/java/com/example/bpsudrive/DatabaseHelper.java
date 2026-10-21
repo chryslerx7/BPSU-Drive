@@ -14,7 +14,7 @@ import java.security.spec.KeySpec;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
-// Beginner-friendly SQLite database helper for BPSU Drive with robust notifications migration and diagnostics.
+// Beginner-friendly SQLite database helper for BPSU Drive with robust notifications migration and dynamic service catalog seeding.
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "BpsuDriveDB";
@@ -138,15 +138,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_NOTIFICATIONS_TABLE);
         Log.d(TAG, "All tables created successfully.");
 
-        // Seed initial predefined campus service types if table is empty
-        try (Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_SERVICES, null)) {
-            if (cursor != null && cursor.moveToFirst() && cursor.getInt(0) == 0) {
-                seedServiceTypes(db);
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error checking service catalog count", e);
-            seedServiceTypes(db);
-        }
+        // Seed initial predefined campus service types
+        checkAndSeedServices(db);
     }
 
     // Safe incremental upgrade strategy preserving existing data and ensuring all tables exist
@@ -202,6 +195,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.execSQL(CREATE_RECEIPTS_TABLE);
             db.execSQL(CREATE_NOTIFICATIONS_TABLE);
 
+            checkAndSeedServices(db);
+
             db.setTransactionSuccessful();
             Log.d(TAG, "onUpgrade completed successfully.");
         } catch (Exception e) {
@@ -211,21 +206,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // Helper method to seed default BPSU campus services
-    private void seedServiceTypes(SQLiteDatabase db) {
-        insertService(db, "Document Request (Transcript / Diploma)", 150.00, "Official academic records and certificate issuance.");
-        insertService(db, "Clearance Processing", 50.00, "End-semester student clearance and approval signatures.");
-        insertService(db, "Student ID Replacement", 200.00, "Replacement for lost or damaged official BPSU student identification cards.");
-        insertService(db, "Certificate of Registration (COR)", 30.00, "Certified copy of official enrollment and subject registration.");
+    // Ensures default services exist in SQLite without duplicating existing records
+    public void checkAndSeedServices(SQLiteDatabase db) {
+        insertServiceIfNotExists(db, "Document Request (Transcript / Diploma)", 150.00, "Official academic records and certificate issuance.");
+        insertServiceIfNotExists(db, "Clearance Processing", 50.00, "End-semester student clearance and approval signatures.");
+        insertServiceIfNotExists(db, "Student ID Replacement", 200.00, "Replacement for lost or damaged official BPSU student identification cards.");
+        insertServiceIfNotExists(db, "Certificate of Registration (COR)", 10.00, "Certified copy of official enrollment and subject registration.");
+        insertServiceIfNotExists(db, "Transcript of Record (TOR)", 20.00, "Certified copy of official Transcript of Record.");
     }
 
-    // Helper to insert a single service record during seeding
-    private void insertService(SQLiteDatabase db, String name, double fee, String description) {
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_SERVICE_NAME, name);
-        values.put(COLUMN_SERVICE_FEE, fee);
-        values.put(COLUMN_SERVICE_DESC, description);
-        db.insert(TABLE_SERVICES, null, values);
+    private void insertServiceIfNotExists(SQLiteDatabase db, String name, double fee, String description) {
+        try (Cursor cursor = db.query(TABLE_SERVICES, new String[]{COLUMN_ID},
+                COLUMN_SERVICE_NAME + " = ?", new String[]{name}, null, null, null)) {
+            if (cursor == null || !cursor.moveToFirst()) {
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_SERVICE_NAME, name);
+                values.put(COLUMN_SERVICE_FEE, fee);
+                values.put(COLUMN_SERVICE_DESC, description);
+                db.insert(TABLE_SERVICES, null, values);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error inserting service " + name, e);
+        }
     }
 
     // Secure password hashing using PBKDF2 with HMAC-SHA-256 and a unique random salt
@@ -242,33 +244,36 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             byte[] hash = factory.generateSecret(spec).getEncoded();
 
             // Format: iterations:base64(salt):base64(hash)
-            String saltBase64 = Base64.encodeToString(salt, Base64.NO_WRAP);
-            String hashBase64 = Base64.encodeToString(hash, Base64.NO_WRAP);
-            return iterations + ":" + saltBase64 + ":" + hashBase64;
+            return iterations + ":" + Base64.encodeToString(salt, Base64.NO_WRAP) + ":" + Base64.encodeToString(hash, Base64.NO_WRAP);
         } catch (Exception e) {
+            Log.e(TAG, "Error hashing password", e);
             return null;
         }
     }
 
-    // Secure password verification method for Phase 2 authentication
-    public static boolean verifyPassword(String password, String storedPasswordHash) {
+    // Constant-time password verification against stored PBKDF2 hash
+    public static boolean verifyPassword(String password, String storedHash) {
+        if (password == null || storedHash == null || !storedHash.contains(":")) {
+            return false;
+        }
+
         try {
-            String[] parts = storedPasswordHash.split(":");
+            String[] parts = storedHash.split(":");
             if (parts.length != 3) {
                 return false;
             }
 
             int iterations = Integer.parseInt(parts[0]);
             byte[] salt = Base64.decode(parts[1], Base64.NO_WRAP);
-            byte[] storedHash = Base64.decode(parts[2], Base64.NO_WRAP);
+            byte[] expectedHash = Base64.decode(parts[2], Base64.NO_WRAP);
 
-            KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, storedHash.length * 8);
+            KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, expectedHash.length * 8);
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-            byte[] testHash = factory.generateSecret(spec).getEncoded();
+            byte[] actualHash = factory.generateSecret(spec).getEncoded();
 
-            // Constant-time comparison to prevent timing attacks
-            return MessageDigest.isEqual(storedHash, testHash);
+            return MessageDigest.isEqual(expectedHash, actualHash);
         } catch (Exception e) {
+            Log.e(TAG, "Error verifying password", e);
             return false;
         }
     }
