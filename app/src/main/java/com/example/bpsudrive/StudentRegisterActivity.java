@@ -5,13 +5,16 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bpsudrive.databinding.ActivityStudentRegisterBinding;
 
-// Student registration activity with SQLite persistence, duplicate checks, PBKDF2 hashing, and automatic login.
+// Student registration activity with SQLite persistence, duplicate checks, PBKDF2 hashing, real-time password validation, and automatic login.
 public class StudentRegisterActivity extends AppCompatActivity {
 
     private ActivityStudentRegisterBinding binding;
@@ -28,8 +31,83 @@ public class StudentRegisterActivity extends AppCompatActivity {
         // Return to login screen
         binding.btnBackToLogin.setOnClickListener(v -> finish());
 
+        // Wire real-time password requirement validation
+        TextWatcher passwordWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                updatePasswordChecklist();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        };
+
+        binding.etPassword.addTextChangedListener(passwordWatcher);
+        binding.etConfirmPassword.addTextChangedListener(passwordWatcher);
+
         // Handle account registration
         binding.btnCreateAccount.setOnClickListener(v -> handleRegistration());
+    }
+
+    private void updatePasswordChecklist() {
+        String password = binding.etPassword.getText().toString();
+        String confirmPassword = binding.etConfirmPassword.getText().toString();
+
+        boolean hasMinLength = password.length() >= 8;
+        boolean hasUpper = password.matches(".*[A-Z].*");
+        boolean hasLower = password.matches(".*[a-z].*");
+        boolean hasDigit = password.matches(".*[0-9].*");
+        boolean hasSpecial = password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
+        boolean allValid = hasMinLength && hasUpper && hasLower && hasDigit && hasSpecial;
+
+        if (password.isEmpty()) {
+            updateChecklistItem(binding.tvReqLength, "At least 8 characters", false, true);
+            updateChecklistItem(binding.tvReqUppercase, "At least 1 uppercase letter (A-Z)", false, true);
+            updateChecklistItem(binding.tvReqLowercase, "At least 1 lowercase letter (a-z)", false, true);
+            updateChecklistItem(binding.tvReqDigit, "At least 1 number (0-9)", false, true);
+            updateChecklistItem(binding.tvReqSpecial, "At least 1 special character (!@#$%^&*)", false, true);
+            binding.tilPassword.setBoxStrokeColor(getColor(R.color.stroke_grey));
+        } else {
+            updateChecklistItem(binding.tvReqLength, "At least 8 characters", hasMinLength, false);
+            updateChecklistItem(binding.tvReqUppercase, "At least 1 uppercase letter (A-Z)", hasUpper, false);
+            updateChecklistItem(binding.tvReqLowercase, "At least 1 lowercase letter (a-z)", hasLower, false);
+            updateChecklistItem(binding.tvReqDigit, "At least 1 number (0-9)", hasDigit, false);
+            updateChecklistItem(binding.tvReqSpecial, "At least 1 special character (!@#$%^&*)", hasSpecial, false);
+
+            if (allValid) {
+                binding.tilPassword.setBoxStrokeColor(getColor(R.color.falcon_accent_green));
+            } else {
+                binding.tilPassword.setBoxStrokeColor(getColor(R.color.error_red));
+            }
+        }
+
+        // Password match check
+        if (confirmPassword.isEmpty()) {
+            updateChecklistItem(binding.tvReqMatch, "Passwords match", false, true);
+            binding.tilConfirmPassword.setBoxStrokeColor(getColor(R.color.stroke_grey));
+        } else if (password.equals(confirmPassword)) {
+            updateChecklistItem(binding.tvReqMatch, "Passwords match", true, false);
+            binding.tilConfirmPassword.setBoxStrokeColor(getColor(R.color.falcon_accent_green));
+        } else {
+            updateChecklistItem(binding.tvReqMatch, "Passwords match", false, false);
+            binding.tilConfirmPassword.setBoxStrokeColor(getColor(R.color.error_red));
+        }
+    }
+
+    private void updateChecklistItem(TextView tv, String label, boolean isSatisfied, boolean isEmpty) {
+        if (isEmpty) {
+            tv.setText("• " + label);
+            tv.setTextColor(getColor(R.color.text_secondary));
+        } else if (isSatisfied) {
+            tv.setText("✓ " + label);
+            tv.setTextColor(getColor(R.color.falcon_accent_green));
+        } else {
+            tv.setText("✗ " + label);
+            tv.setTextColor(getColor(R.color.error_red));
+        }
     }
 
     private void handleRegistration() {
@@ -42,6 +120,12 @@ public class StudentRegisterActivity extends AppCompatActivity {
         // Validate required fields
         if (fullName.isEmpty() || studentId.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(this, "Please fill in all required fields", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Validate 5 password requirements
+        if (!DatabaseHelper.isPasswordValid(password)) {
+            Toast.makeText(this, "Password must be at least 8 characters long and include an uppercase letter, lowercase letter, number, and special character.", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -70,7 +154,7 @@ public class StudentRegisterActivity extends AppCompatActivity {
             }
         }
 
-        // Hash password securely
+        // Hash password securely using PBKDF2
         String passwordHash = DatabaseHelper.hashPassword(password);
         if (passwordHash == null) {
             Toast.makeText(this, "Error hashing password", Toast.LENGTH_SHORT).show();

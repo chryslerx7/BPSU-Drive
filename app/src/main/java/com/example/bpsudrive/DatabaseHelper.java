@@ -213,6 +213,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         insertServiceIfNotExists(db, "Student ID Replacement", 200.00, "Replacement for lost or damaged official BPSU student identification cards.");
         insertServiceIfNotExists(db, "Certificate of Registration (COR)", 10.00, "Certified copy of official enrollment and subject registration.");
         insertServiceIfNotExists(db, "Transcript of Record (TOR)", 20.00, "Certified copy of official Transcript of Record.");
+        insertServiceIfNotExists(db, "Library Card Replacement", 50.00, "Replacement for lost or damaged official BPSU student library cards.");
     }
 
     private void insertServiceIfNotExists(SQLiteDatabase db, String name, double fee, String description) {
@@ -228,6 +229,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         } catch (Exception e) {
             Log.e(TAG, "Error inserting service " + name, e);
         }
+    }
+
+    // Validates password requirements: 8+ chars, 1 uppercase, 1 lowercase, 1 digit, 1 special character
+    public static boolean isPasswordValid(String password) {
+        if (password == null || password.length() < 8) {
+            return false;
+        }
+        boolean hasUpper = password.matches(".*[A-Z].*");
+        boolean hasLower = password.matches(".*[a-z].*");
+        boolean hasDigit = password.matches(".*[0-9].*");
+        boolean hasSpecial = password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
+        return hasUpper && hasLower && hasDigit && hasSpecial;
     }
 
     // Secure password hashing using PBKDF2 with HMAC-SHA-256 and a unique random salt
